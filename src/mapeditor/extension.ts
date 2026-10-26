@@ -1,6 +1,7 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { LANDMARKS, type Town } from "../sim.js";
 import { TownMap, MapError, TILE_TYPES, BUILDING_TYPES } from "./model.js";
+import { readWorld, writeWorld, WORLD_PATH } from "../world/store.js";
 
 type Ctx = {
   town: Town;
@@ -34,6 +35,12 @@ export function register(ctx: Ctx) {
   };
   // Anchored places are sim landmarks, i.e. our own buildings, so only the others are reserved.
   const tm = new TownMap(() => places().filter((p) => !p.anchor));
+  const saved = readWorld();
+  if (saved) {
+    try { tm.install(saved.map); tm.adoptHistory(saved.history); }
+    catch (e) { console.error(`[world] keeping the default town: ${(e as Error).message}`); }
+  }
+  const persist = () => writeWorld({ map: tm.json(), history: tm.history }, WORLD_PATH);
 
   // The sim walks agents to LANDMARKS, so mirror buildings into it in place.
   const syncSim = () => {
@@ -46,10 +53,12 @@ export function register(ctx: Ctx) {
     const msg = `event: map:changed\ndata: ${JSON.stringify({ version: tm.version, actor, kind, changes })}\n\n`;
     for (const c of ctx.clients) c.write(msg);
     syncSim();
+    try { persist(); } catch { console.error("[world] could not save the town"); }
   };
-  // Agents never pick a water tile as a walk target.
+  // Agents do not keep a water or tree cell as their walk target.
   ctx.on("tick", () => {
-    for (const a of ctx.town.agents) if (tm.tile(a.tx, a.ty) === "water") { a.tx = a.x; a.ty = a.y; }
+    const blocked = (x: number, y: number) => tm.tile(x, y) === "water" || tm.tile(x, y) === "tree";
+    for (const a of ctx.town.agents) if (blocked(a.tx, a.ty)) { a.tx = a.x; a.ty = a.y; }
   });
 
   const route = (method: string, path: string, fn: (b: any, url: URL) => unknown) =>
@@ -93,4 +102,5 @@ export function register(ctx: Ctx) {
     return { ok: true, version: tm.version, editId: edit.editId };
   });
   syncSim();
+  try { persist(); } catch { console.error("[world] could not save the town"); }
 }
