@@ -36,6 +36,7 @@ export interface ChatRequest {
   maxTokens: number;
   model?: string;
   timeoutMs: number;
+  onUsage?: (usage: { inputTokens: number; outputTokens: number }) => void;
 }
 
 export interface Adapter {
@@ -58,3 +59,4 @@ export const DEFAULT_CONFIG: Omit<TownConfig, "agents"> = {
   maxOutputChars: 280,
   adapters: { mock: true, "claude-code": true, codex: true, grok: true, gemini: true, ollama: true },
 };
+
