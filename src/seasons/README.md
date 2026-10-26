@@ -74,8 +74,13 @@ So on 31 December, New Year's Eve (priority 30) beats the snow day (priority 10)
 - With no active event, `eventId` is `null` and the scene is neutral: no decor, `clear`,
   `#ffffff`, day, brightness 1.
 
-Renderers should fetch `/api/season` on load. After a manual trigger the server also sends the
-usual `state` event over `/events`, which is a good moment to fetch again.
+Renderers should fetch `/api/season` on load. On a manual trigger or clear, and when the date
+pick changes, the server sends a `season` event over `/events` with the same payload.
+
+In the browser, `public/extensions/seasons.js` (mounted by the client extension loader) shows a
+side-panel with the active event and a trigger dropdown. It draws nothing in the town view; it
+sets `globalThis.townSeason` to the current `visuals` and fires a `town:season` window event
+with the visuals as `detail`, so either renderer can subscribe without importing seasons code.
 
 ## Manual trigger
 
@@ -94,8 +99,8 @@ server restarts.
 import { pickEvent, triggerEvent, clearEvent, getActiveEvent, getTopicHint, getVisuals } from "./seasons/index.js";
 ```
 
-`extension.ts` exports `register(ctx)` for the shared extension loader in `src/extensions.ts`
-(branch `grok/extensions`). It adds the three routes to `ctx.routes` and pushes a prompt hook
-onto `ctx.promptHooks` that appends `getTopicHint()`. No other file has a seasons hook; the
-routes and hint go live once `server.ts` calls `loadExtensions()` and applies `routes` and
-`promptHooks`, which is `grok/extensions`' job.
+`extension.ts` exports `register({ town, clients, routes, config, on, promptHooks })` for the
+shared extension loader in `src/extensions.ts`. It adds the three routes to `routes`, pushes a
+prompt hook onto `promptHooks` that appends `getTopicHint()`, and uses `clients` to send the
+`season` event. Seasons has no hook in any existing file; `extension.ts` and
+`public/extensions/seasons.js` are its only integration points.
