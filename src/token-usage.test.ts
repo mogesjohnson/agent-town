@@ -19,3 +19,20 @@ test("mock is zero, invalid reporting becomes an explicit estimate", () => {
   recordUsage(u, "ollama", req, "text", { inputTokens: -1, outputTokens: NaN });
   assert.equal(u.lastTurn?.source, "estimated");
 });
+
+import { Town } from "./sim.js";
+import { DEFAULT_CONFIG, type Adapter } from "./types.js";
+test("town records full reply before truncation and failed calls as unknown", async () => {
+  const adapter: Adapter = { id: "ollama", detect: async () => ({ available: true }),
+    chat: async (r) => { r.onUsage?.({ inputTokens: 100, outputTokens: 30 }); return "123456789"; } };
+  const town = new Town({ ...DEFAULT_CONFIG, maxOutputChars: 3, agents: [] }, new Map([[adapter.id, adapter]]), () => {});
+  town.setAgents([{ name: "A", color: "red", personality: "kind", provider: "ollama" }], new Map([["ollama", { available: true }]]));
+  const a = town.agents[0];
+  assert.equal(await town.speak(a, "visitor", []), "123");
+  assert.equal(town.state().agents[0].tokenUsage.reportedOutput, 30);
+  adapter.chat = async () => { throw new Error("test failure"); };
+  assert.equal(await town.speak(a, "visitor", []), null);
+  assert.equal(a.tokenUsage?.failedTurns, 1);
+  assert.equal(a.tokenUsage?.completedTurns, 1);
+  assert.equal(a.tokenUsage?.reportedInput, 100);
+});
