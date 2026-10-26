@@ -15,6 +15,12 @@ const DEFS: Def[] = [
   { tool: "upsert_season_event", op: "season.upsert", title: "Add or update season event", description: "Save a custom season event (dates, topic hint, visuals) in the town data folder. Activate it with trigger_event." },
   { tool: "trigger_event", op: "event.trigger", title: "Trigger event", description: "Force a season event by id (null clears the override) and/or post a town-wide announcement every agent hears." },
   { tool: "narrator_say", op: "narrator.say", title: "Narrator says", description: "Post a Narrator line to the chat log; every agent hears it. Cannot be undone." },
+  { tool: "paint_tiles", op: "map.paint", title: "Paint map tiles", description: "Set map cells to a tile type (grass, road, water, hill, tree; see get_map palette). Up to 500 cells; cells under places are skipped." },
+  { tool: "place_building", op: "map.add", title: "Place building", description: "Add a building of a palette type (house, shop, cafe, park, library, plaza) with its top-left at x, y." },
+  { tool: "move_building", op: "map.move", title: "Move building", description: "Move a building (id from get_map) so its top-left is at x, y; optionally rename it." },
+  { tool: "remove_building", op: "map.remove", title: "Remove building", description: "Remove a building by id (from get_map)." },
+  { tool: "undo_map_edit", op: "map.undo", title: "Undo map edit", description: "Undo the latest map edit by anyone, using the map editor's own undo." },
+  { tool: "set_mood", op: "mood.set", title: "Set mood", description: "Override an agent's mood (null clears) and/or set needs 0-100 (hunger, energy, social, happiness)." },
   { tool: "pause_town", op: "pause.set", title: "Pause town", description: "Pause the simulation (no new conversations).", fixed: { paused: true } },
   { tool: "resume_town", op: "pause.set", title: "Resume town", description: "Resume the simulation.", fixed: { paused: false } },
 ];

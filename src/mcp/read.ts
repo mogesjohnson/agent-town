@@ -37,4 +37,11 @@ export const VIEWS: View[] = [
     load: async (b) => ({ server: value(await call(b, "/api/mcp/info"), (d) => d.extensions.server), client: value(await call(b, "/api/extensions")) }) },
   { name: "changes", title: "Change log", description: "Last 50 changes made through this plugin: who (MCP client), op, args, before/after, undo links.",
     load: async (b) => value(await call(b, "/api/mcp/changes"), (d) => d.changes) },
+  { name: "map", title: "Map", description: "Editable map: width, height, tiles[y][x], buildings, places, version, plus the palette (map editor).",
+    load: async (b) => {
+      const map = await call(b, "/api/map");
+      return map.ok ? { ...(map.data as object), palette: value(await call(b, "/api/map/palette")) } : value(map);
+    } },
+  { name: "map_history", title: "Map history", description: "Last 50 map edits, newest first: editId, actor, kind, summary, undone.",
+    load: async (b) => value(await call(b, "/api/map/history?limit=50")) },
 ];
