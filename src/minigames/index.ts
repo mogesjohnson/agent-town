@@ -6,23 +6,21 @@ import { Scoreboard } from "./scoreboard.js";
 const FIRST_GAME_MS = 15_000, BETWEEN_GAMES_MS = 45_000, GATHER_MS = 15_000, COOLDOWN_MS = 10_000;
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const shuffle = <T>(xs: T[]) => xs.map((x) => [Math.random(), x] as const).sort((a, b) => a[0] - b[0]).map((p) => p[1]);
+type OnFn = (event: string, fn: (data: unknown) => void) => unknown;
 
 interface Current { game: Game["id"]; title: string; players: string[]; phase: "gather" | "play"; startedAt: number }
 
 /**
- * Plug plaza minigames into an existing town. Adds `minigames` to `town.state()`, emits
- * `minigame` and `scoreboard` SSE events through `emit`, and (when given the route table) serves
- * GET /api/minigames. Edits no sim or server code.
+ * Plug plaza minigames into an existing town. Emits `minigame` and `scoreboard` SSE events
+ * through `emit`, serves GET /api/minigames when given the route table, and runs its host
+ * loop on the extension `tick` event (or its own timer). Patches nothing.
  */
-export function registerMinigames(town: Town, emit: Emit, routes?: Routes) {
+export function registerMinigames(town: Town, emit: Emit, routes?: Routes, on?: OnFn) {
   const board = new Scoreboard();
   const plaza = LANDMARKS.find((l) => l.name === "Plaza") ?? LANDMARKS[0];
   let current: Current | null = null;
   let nextAt = Date.now() + FIRST_GAME_MS;
   const snapshot = () => ({ current, scoreboard: board.snapshot(), games: GAMES.map((g) => g.id) });
-
-  const baseState = town.state.bind(town);
-  town.state = () => ({ ...baseState(), minigames: snapshot() });
 
   const event = (kind: string, data: Record<string, unknown> = {}) => {
     const ev = { kind, game: current?.game, players: current?.players, t: Date.now(), ...data };
@@ -83,7 +81,7 @@ export function registerMinigames(town: Town, emit: Emit, routes?: Routes) {
     }
   }
 
-  setInterval(() => {
+  const step = () => {
     const now = Date.now();
     if (current || town.paused || now < nextAt) return;
     const free = shuffle(town.agents.filter((a) =>
@@ -92,7 +90,8 @@ export function registerMinigames(town: Town, emit: Emit, routes?: Routes) {
     if (!games.length) { nextAt = now + 5_000; return; }
     const game = games[Math.floor(Math.random() * games.length)];
     void run(game, free.slice(0, Math.min(game.maxPlayers, free.length)));
-  }, 2_000).unref();
+  };
+  if (on) on("tick", step); else setInterval(step, 2_000).unref();
 
   routes?.add("GET", "/api/minigames", (_req, res) => {
     res.writeHead(200, { "content-type": "application/json" });
