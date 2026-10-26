@@ -75,3 +75,5 @@ const server = createServer(async (req, res) => {
 await reload();
 setInterval(() => town.tick(), 400);
 server.listen(config.port, "127.0.0.1", () => console.log(`agent-town on http://localhost:${config.port}`));
+// replay hook (code-executor): opt-in, records the event stream only when AGENT_TOWN_RECORD is set. See src/replay/README.md.
+if (process.env.AGENT_TOWN_RECORD) void import("./replay/hook.js").then((m) => m.attachRecorder(clients, process.env.AGENT_TOWN_RECORD!, () => town.state()));
