@@ -31,7 +31,7 @@ export function createExplorer(view, host) {
   const position = document.createElement("output");
   position.setAttribute("aria-label", "Visitor position"); bar.append(position);
   const keys = new Set(), ray = new THREE.Raycaster();
-  let paused = false, last = 0, active = false;
+  let paused = false, last = 0, active = false, walking = false;
   const typing = () => /^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(document.activeElement?.tagName) ||
     document.activeElement?.isContentEditable;
   function keydown(event) {
@@ -57,6 +57,7 @@ export function createExplorer(view, host) {
   select.value = new URLSearchParams(location.search).get("camera") === "overview" ? "overview" : "visitor";
   mode();
   function animate(now) {
+    walking = false;
     const dt = Math.max(0, Math.min((now - (last || now)) / 1000, 0.05)); last = now;
     if (!active) return;
     if (typing()) clear();
@@ -73,9 +74,11 @@ export function createExplorer(view, host) {
       ray.set(avatar.position.clone().add(new THREE.Vector3(0, 0.8, 0)), movement);
       ray.far = distance + 0.4;
       if (!ray.intersectObject(world.root, true).length) {
+        const beforeX = avatar.position.x, beforeZ = avatar.position.z;
         avatar.position.addScaledVector(movement, distance);
         avatar.position.x = THREE.MathUtils.clamp(avatar.position.x, -19, 19);
         avatar.position.z = THREE.MathUtils.clamp(avatar.position.z, -14, 14);
+        walking = avatar.position.x !== beforeX || avatar.position.z !== beforeZ;
         avatar.rotation.y = Math.atan2(movement.x, movement.z);
       }
       body.position.y = 0.9 + Math.sin(now * 0.013) * 0.04;
@@ -85,7 +88,7 @@ export function createExplorer(view, host) {
     camera.position.add(target.clone().sub(controls.target)); controls.target.copy(target);
     position.textContent = `${avatar.position.x.toFixed(2)}, ${avatar.position.z.toFixed(2)}`;
   }
-  return { animate, setPaused(value) { paused = value; }, dispose() {
+  return { animate, get walking() { return walking; }, setPaused(value) { paused = value; }, dispose() {
     removeEventListener("keydown", keydown); removeEventListener("keyup", keyup); removeEventListener("blur", clear);
     animation.dispose(); bar.remove();
     // Leave the avatar attached for the view's shared geometry/material cleanup.

@@ -6,6 +6,7 @@ import { createExplorer } from "./town-explorer.js";
 import { createPlaceView } from "./town-place-view.js";
 import { createMapView } from "./town-map-view.js";
 import { createAtmosphere } from "./town-atmosphere.js";
+import { createTownAudio } from "./town-audio.js";
 
 export function mountTown(canvas, fallback) {
   const host = document.createElement("div");
@@ -17,6 +18,7 @@ export function mountTown(canvas, fallback) {
   const crowd = createCrowd(view.scene, view.camera.isPerspectiveCamera), overlays = createOverlays(view, crowd);
   const lighting = createLighting(view, host);
   const atmosphere = createAtmosphere(view, host);
+  const audio = createTownAudio(host);
   const explorer = view.camera.isPerspectiveCamera ? createExplorer(view, host) : null;
   const places = createPlaceView(view);
   const map = createMapView(view);
@@ -28,10 +30,11 @@ export function mountTown(canvas, fallback) {
   view.onFrame((now) => {
     lighting.animate(now, paused); crowd.animate(now); explorer?.animate(now); places.animate(); map.animate(); overlays.animate(now, paused);
     atmosphere.animate(now, paused);
+    audio.animate(now, { paused, weather: atmosphere.weather, night: host.dataset.time === "night", walking: explorer?.walking || false });
   });
   const dispose = () => {
     if (disposed) return;
-    disposed = true; atmosphere.dispose(); map.dispose(); places.dispose(); explorer?.dispose(); crowd.dispose(); lighting.dispose(); view.dispose(); host.remove(); canvas.hidden = false;
+    disposed = true; audio.dispose(); atmosphere.dispose(); map.dispose(); places.dispose(); explorer?.dispose(); crowd.dispose(); lighting.dispose(); view.dispose(); host.remove(); canvas.hidden = false;
   };
   host.querySelector("canvas").addEventListener("webglcontextlost", (event) => {
     event.preventDefault(); dispose(); fallback();
