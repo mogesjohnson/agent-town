@@ -54,7 +54,6 @@ export function createExplorer(view, host) {
   function animate(now) {
     const dt = Math.max(0, Math.min((now - (last || now)) / 1000, 0.05)); last = now;
     if (!active) return;
-    position.textContent = `${avatar.position.x.toFixed(2)}, ${avatar.position.z.toFixed(2)}`;
     if (typing()) clear();
     const forward = camera.getWorldDirection(new THREE.Vector3()); forward.y = 0; forward.normalize();
     const right = forward.clone().cross(camera.up);
@@ -78,6 +77,7 @@ export function createExplorer(view, host) {
     }
     const target = avatar.position.clone().add(new THREE.Vector3(0, 1.25, 0));
     camera.position.add(target.clone().sub(controls.target)); controls.target.copy(target);
+    position.textContent = `${avatar.position.x.toFixed(2)}, ${avatar.position.z.toFixed(2)}`;
   }
   return { animate, setPaused(value) { paused = value; }, dispose() {
     removeEventListener("keydown", keydown); removeEventListener("keyup", keyup); removeEventListener("blur", clear);
