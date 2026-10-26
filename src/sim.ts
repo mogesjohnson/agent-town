@@ -32,6 +32,7 @@ export class Town {
   log: { t: number; from: string; to: string; text: string }[] = [];
   usage = { calls: 0, errors: 0, conversations: 0, chars: 0 };
   private callTimes: number[] = [];
+  promptHooks: ((prompt: string, info: { agent: string; partner: string }) => string)[] = [];
 
   constructor(public config: TownConfig, private adapters: Map<string, Adapter>, private emit: Emit) {}
 
@@ -57,6 +58,11 @@ export class Town {
   }
 
   private systemPrompt(a: Agent, partner: string): string {
+    const base = this.basePrompt(a, partner);
+    return this.promptHooks.reduce((p, h) => h(p, { agent: a.cfg.name, partner }), base);
+  }
+
+  private basePrompt(a: Agent, partner: string): string {
     const met = Object.entries(a.met).map(([n, c]) => `${n} (${c}x)`).join(", ") || "nobody yet";
     return [
       "You are a character in a tiny cartoon town game. ROLE-PLAY ONLY.",
@@ -104,6 +110,7 @@ export class Town {
     a.met[b.cfg.name] = (a.met[b.cfg.name] ?? 0) + 1;
     b.met[a.cfg.name] = (b.met[a.cfg.name] ?? 0) + 1;
     console.log(`[convo] ${a.cfg.name} meets ${b.cfg.name}`);
+    this.emit("convo", { a: a.cfg.name, b: b.cfg.name });
     const exchanges = 2 + rnd(3);
     const transcript: { who: Agent; text: string }[] = [];
     for (let i = 0; i < exchanges * 2; i++) {
