@@ -35,4 +35,6 @@ export const VIEWS: View[] = [
     load: async (b) => value(await call(b, "/api/mcp/info"), (d) => d.config) },
   { name: "extensions", title: "Extensions", description: "Loaded server extensions (dist/<name>/extension.js) and client extension scripts.",
     load: async (b) => ({ server: value(await call(b, "/api/mcp/info"), (d) => d.extensions.server), client: value(await call(b, "/api/extensions")) }) },
+  { name: "changes", title: "Change log", description: "Last 50 changes made through this plugin: who (MCP client), op, args, before/after, undo links.",
+    load: async (b) => value(await call(b, "/api/mcp/changes"), (d) => d.changes) },
 ];
