@@ -8,7 +8,8 @@ if (new URLSearchParams(location.search).get("renderer") !== "2d") {
     if (state) townView.update(state);
   }).catch((error) => console.warn("3D town unavailable; using 2D", error));
 }
-const tabs = { All: [] };
+const tabs = Object.assign(Object.create(null), { All: [] });
+const HISTORY_LIMIT = 200, RECENT_LIMIT = 2048, recentEvents = new Set();
 
 const es = new EventSource("/events");
 es.addEventListener("state", (e) => { state = JSON.parse(e.data); render(); });
@@ -16,16 +17,27 @@ es.addEventListener("log", (e) => JSON.parse(e.data).forEach(onSay));
 es.addEventListener("say", (e) => onSay(JSON.parse(e.data)));
 
 function onSay(m) {
+  const key = JSON.stringify([m.t, m.from, m.to, m.text]);
+  if (recentEvents.has(key)) return;
+  recentEvents.add(key);
+  if (recentEvents.size > RECENT_LIMIT) recentEvents.delete(recentEvents.values().next().value);
   const line = `${m.from} → ${m.to}: ${m.text}`;
   const log = document.getElementById("log");
   log.insertAdjacentHTML("beforeend", `<div>${esc(line)}</div>`);
+  while (log.childElementCount > HISTORY_LIMIT) log.firstElementChild.remove();
   log.scrollTop = log.scrollHeight;
   if (m.from === "You" || m.to === "You") {
     const tab = m.from === "You" ? m.to : m.from;
-    if (m.to === "All" || m.from === "You" && m.to === "All") tabs.All.push(line);
-    else { (tabs[tab] ??= []).push(line); if (tab !== "All" && m.to === "You") tabs.All.push(line); }
+    if (m.to === "All" || m.from === "You" && m.to === "All") appendChat("All", line);
+    else { appendChat(tab, line); if (tab !== "All" && m.to === "You") appendChat("All", line); }
     renderChat();
   }
+}
+
+function appendChat(tab, line) {
+  const history = tabs[tab] ??= [];
+  history.push(line);
+  if (history.length > HISTORY_LIMIT) history.splice(0, history.length - HISTORY_LIMIT);
 }
 
 function esc(s) { return s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]); }
