@@ -35,3 +35,28 @@ aside { flex: 1; background: #2b2e36; border-radius: 6px; padding: 6px; min-widt
   width: 9px; height: 9px; background: #fffbe8; border-right: 2px solid #697a64;
   border-bottom: 2px solid #697a64; transform: rotate(45deg); }
 .agent-bubble.thinking { letter-spacing: 3px; }
+
+main { display: grid; grid-template-columns: minmax(0, 1fr) 280px; align-items: stretch; }
+main > .town-stage { height: clamp(420px, 48vw, 680px); border-radius: 10px; border: 1px solid #83917a; }
+main > canvas { width: 100%; height: auto; align-self: center; }
+main > canvas[hidden] { display: none; }
+body { background: #253a36; color: #f1ecd9; }
+header { background: #304a43; padding: 12px 16px; border-bottom: 1px solid #647363; }
+h1 { letter-spacing: .06em; }
+aside, #chat, #logbox { background: #304a43; border: 1px solid #5c705f; padding: 12px; }
+aside { min-width: 0; }
+#lobby li { padding: 9px 3px; border-bottom: 1px solid #64736366; }
+#lobby li:hover { background: #40594c; }
+#tabs button { background: #425e50; border-radius: 4px 4px 0 0; }
+#tabs button.on { background: #75846a; }
+#pause, #form button { background: #e4c78e; color: #344c40; border: 0; border-radius: 4px; padding: 7px 12px; cursor: pointer; }
+#input { min-width: 0; background: #f6efdc; color: #35483f; border: 0; border-radius: 4px; padding: 8px; }
+#usage { font-size: 12px; opacity: .8; }
+@media (max-width: 850px) {
+  main { grid-template-columns: minmax(0, 1fr); }
+  main > .town-stage { height: 460px; }
+  #lobby { display: flex; flex-wrap: wrap; gap: 12px; }
+  #lobby li { flex: 1 1 180px; }
+  #bottom { flex-direction: column; }
+  header { flex-wrap: wrap; }
+}

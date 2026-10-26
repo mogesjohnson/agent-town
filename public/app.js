@@ -1,7 +1,13 @@
-// agent-town client: vanilla JS, Canvas, SSE for updates, POST for actions.
+// agent-town client: SSE and controls shared by the 3D and 2D renderers.
 const TILE = 20;
 const cv = document.getElementById("town"), ctx = cv.getContext("2d");
-let state = null, active = "All";
+let state = null, active = "All", townView = null;
+if (new URLSearchParams(location.search).get("renderer") !== "2d") {
+  import("./town-renderer.js").then(({ mountTown }) => {
+    townView = mountTown(cv, () => { townView = null; render(); });
+    if (state) townView.update(state);
+  }).catch((error) => console.warn("3D town unavailable; using 2D", error));
+}
 const tabs = { All: [] };
 
 const es = new EventSource("/events");
@@ -26,19 +32,22 @@ function esc(s) { return s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;
 
 function render() {
   if (!state) return;
-  ctx.clearRect(0, 0, cv.width, cv.height);
-  for (const l of state.landmarks) {
-    ctx.fillStyle = l.color; ctx.fillRect(l.x * TILE, l.y * TILE, l.w * TILE, l.h * TILE);
-    ctx.fillStyle = "#333"; ctx.font = "12px sans-serif"; ctx.fillText(l.name, l.x * TILE + 4, l.y * TILE + 14);
-  }
-  for (const a of state.agents) {
-    const x = a.x * TILE + TILE / 2, y = a.y * TILE + TILE / 2;
-    ctx.globalAlpha = a.status === "unavailable" ? 0.35 : 1;
-    ctx.fillStyle = a.color; ctx.beginPath(); ctx.arc(x, y, 8, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = "#111"; ctx.font = "11px sans-serif"; ctx.fillText(a.name, x - 12, y + 20);
-    ctx.globalAlpha = 1;
-    if (a.bubble) bubble(x, y - 14, a.bubble);
-    else if (a.status === "thinking") bubble(x, y - 14, "…");
+  if (townView) townView.update(state);
+  else {
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    for (const l of state.landmarks) {
+      ctx.fillStyle = l.color; ctx.fillRect(l.x * TILE, l.y * TILE, l.w * TILE, l.h * TILE);
+      ctx.fillStyle = "#333"; ctx.font = "12px sans-serif"; ctx.fillText(l.name, l.x * TILE + 4, l.y * TILE + 14);
+    }
+    for (const a of state.agents) {
+      const x = a.x * TILE + TILE / 2, y = a.y * TILE + TILE / 2;
+      ctx.globalAlpha = a.status === "unavailable" ? 0.35 : 1;
+      ctx.fillStyle = a.color; ctx.beginPath(); ctx.arc(x, y, 8, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#111"; ctx.font = "11px sans-serif"; ctx.fillText(a.name, x - 12, y + 20);
+      ctx.globalAlpha = 1;
+      if (a.bubble) bubble(x, y - 14, a.bubble);
+      else if (a.status === "thinking") bubble(x, y - 14, "…");
+    }
   }
   document.getElementById("pause").textContent = state.paused ? "Resume" : "Pause";
   const u = state.usage;
