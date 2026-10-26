@@ -118,7 +118,8 @@ export class TownMap {
     return { edit: this.commit(actor, "building:move", `moved ${found.id} to ${b.x},${b.y}`, before), building: found };
   }
 
-  load(m: any, actor: string) {
+  /** Replace the map without writing history. Restarts use this so undo stays empty until a new edit. */
+  install(m: any) {
     if (!m || m.width !== W || m.height !== H) throw new MapError(`map must be ${W}x${H}`);
     if (!Array.isArray(m.tiles) || m.tiles.length !== H || m.tiles.some((r: unknown) => !Array.isArray(r) || r.length !== W)) throw new MapError("tiles must be string[height][width]");
     if (m.tiles.flat().some((t: string) => !TILE_TYPES.includes(t as any))) throw new MapError("unknown tile type in map");
@@ -130,8 +131,23 @@ export class TownMap {
       for (const b of m.buildings) this.addBuilding(b);
       if (m.worldVersion == null && legacyDefault(m.buildings, tiles)) seed(this.map);
       this.refresh();
+      if (Number.isInteger(m.version) && m.version > 0) this.version = m.version;
     } catch (e) { this.map = before; throw e; }
+  }
+
+  load(m: any, actor: string) {
+    const before = clone(this.map);
+    this.install(m);
     return this.commit(actor, "load", `loaded map with ${this.map.buildings.length} building(s)`, before);
+  }
+
+  /** Restore a saved log. Ids already used are not issued again. */
+  adoptHistory(entries: Edit[]) {
+    this.history = entries.filter((e) => e && typeof e.editId === "string" && e.before).slice(-200);
+    for (const e of this.history) {
+      const n = Number(/^e(\d+)$/.exec(e.editId)?.[1] ?? 0);
+      if (n > this.seq) this.seq = n;
+    }
   }
 
   /** Undo the latest live edit; if editId is given it must be that edit. */
