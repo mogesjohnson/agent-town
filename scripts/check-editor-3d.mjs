@@ -30,7 +30,7 @@ try {
   assert.equal(edits.length, 1);
   assert.deepEqual(edits[0].tiles[0], { ...expected, type: "road" });
   assert.equal(edits[0].actor, "ui");
-  const alpha = await page.locator('[data-ext="mapeditor"] canvas').last().evaluate((c) =>
+  const alpha = await page.locator('#ext-overlay [data-ext="mapeditor"] canvas').evaluate((c) =>
     c.getContext("2d").getImageData(0, 0, c.width, c.height).data.filter((_, i) => i % 4 === 3).some((a) => a));
   assert.equal(alpha, false, "3D edit target stays transparent");
   map.buildings = [{ id: "fixture-house", type: "house", name: "Fixture house", x: 8, y: 8, w: 3, h: 3 }];
