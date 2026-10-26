@@ -4,6 +4,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { townUrl } from "./http.js";
 import { VIEWS } from "./read.js";
+import { registerWrites } from "./write.js";
 
 let base: URL;
 try { base = townUrl(); } catch (e) { console.error(`[agent-town-mcp] ${(e as Error).message}`); process.exit(1); }
@@ -18,6 +19,7 @@ for (const v of VIEWS) {
   mcp.registerTool(`get_${v.name}`, { title: v.title, description: `${v.description} Same as resource ${uri}.`, annotations: { readOnlyHint: true } },
     async () => text(await v.load(base)));
 }
+registerWrites(mcp, base);
 
 await mcp.connect(new StdioServerTransport());
 console.error(`[agent-town-mcp] ready; town at ${base.origin}`);
