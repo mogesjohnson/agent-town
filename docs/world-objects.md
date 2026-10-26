@@ -29,3 +29,6 @@ cells. Importing older map exports still advances the live renderer revision. Un
 revalidates current venue footprints and refuses overlaps without changing the map.
 Residents route around water and tree tiles before stepping; blocked destinations are
 abandoned. Removing every building leaves random wandering available.
+
+Custom venue creation, relocation and previews reject footprints over water or trees
+using the live map's traversal predicate. Automatic `near` searches skip those cells.
