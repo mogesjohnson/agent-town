@@ -60,3 +60,10 @@ aside { min-width: 0; }
   #bottom { flex-direction: column; }
   header { flex-wrap: wrap; }
 }
+
+.town-toolbar { position: absolute; left: 12px; right: 12px; bottom: 12px;
+  display: flex; gap: 12px; align-items: center; justify-content: space-between;
+  font: 11px ui-monospace, monospace; color: #fff9df; }
+.town-toolbar label, .town-toolbar > span { background: #354b45df; padding: 6px 8px; border-radius: 5px; }
+.town-toolbar select { background: #f6efdc; color: #35483f; border: 0; border-radius: 3px; padding: 4px; }
+@media (max-width: 600px) { .town-toolbar > span { display: none; } }
