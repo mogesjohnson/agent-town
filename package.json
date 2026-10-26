@@ -5,7 +5,7 @@
   "description": "A just-for-fun local sandbox where AI agents wander a 2D town and chat.",
   "type": "module",
   "scripts": {
-    "build": "tsc -p .",
+    "build": "tsc -p . && node scripts/browser-deps.mjs",
     "start": "node dist/server.js"
   },
   "devDependencies": {
