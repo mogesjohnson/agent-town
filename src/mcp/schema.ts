@@ -4,6 +4,10 @@ import { z } from "zod";
 const name = z.string().trim().min(1).max(24).regex(/^[\p{L}\p{N} .'-]+$/u, "letters, digits, space . ' - only");
 const color = z.string().regex(/^#[0-9a-fA-F]{6}$/, 'use "#rrggbb"');
 const line = (max: number) => z.string().trim().min(1).max(max);
+const cell = { x: z.number().int().min(0).max(199), y: z.number().int().min(0).max(199) };
+const kind = z.string().regex(/^[a-z][a-z-]{0,19}$/);
+const buildingId = z.string().regex(/^[\w-]{1,32}$/);
+const need = z.number().min(0).max(100);
 const monthDay = z.string().regex(/^\d{2}-\d{2}$/, 'use "MM-DD"');
 
 export const shapes = {
@@ -32,6 +36,20 @@ export const shapes = {
     announcement: line(280).optional().describe("A town-wide happening, posted to the chat log and heard by every agent."),
   },
   "pause.set": { paused: z.boolean() },
+  "map.paint": {
+    tiles: z.array(z.object({ ...cell, type: kind.describe("Tile type from the palette, e.g. grass, road, water, hill, tree.") }).strict())
+      .min(1).max(500).describe("Cells to paint; tiles[y][x] in get_map."),
+  },
+  "map.add": { type: kind.describe("Building type from the palette, e.g. house, shop, cafe, park."), ...cell, id: buildingId.optional(), name: line(40).optional() },
+  "map.move": { id: buildingId, ...cell, name: line(40).optional() },
+  "map.remove": { id: buildingId },
+  "map.undo": { editId: z.string().max(20).optional().describe("Map edit id; must be the latest edit. Omit for the latest.") },
+  "mood.set": {
+    agent: name,
+    mood: z.string().regex(/^[a-z][a-z-]{0,23}$/).nullable().optional().describe("Mood override, e.g. happy, grumpy; null clears it."),
+    needs: z.object({ hunger: need, energy: need, social: need, happiness: need }).partial().strict().optional(),
+    durationMinutes: z.number().min(1).max(1440).optional().describe("Override length in game minutes (default 30)."),
+  },
   "narrator.say": { text: line(280) },
 };
 
