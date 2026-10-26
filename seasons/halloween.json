@@ -1,0 +1,13 @@
+{
+  "id": "halloween",
+  "name": "Halloween Night",
+  "windows": [{ "from": "10-24", "to": "10-31" }],
+  "priority": 20,
+  "topicHint": "It is Halloween week in town. Mention costumes, carved pumpkins or a spooky story you heard.",
+  "visuals": {
+    "decor": ["pumpkin", "bat", "cobweb", "lantern"],
+    "weather": "fog",
+    "tint": "#ff7518",
+    "ambient": { "timeOfDay": "dusk", "brightness": 0.55 }
+  }
+}

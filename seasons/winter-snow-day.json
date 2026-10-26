@@ -1,0 +1,13 @@
+{
+  "id": "winter-snow-day",
+  "name": "Winter Snow Day",
+  "windows": [{ "from": "12-15", "to": "02-15" }],
+  "priority": 10,
+  "topicHint": "It is a snowy winter day. Talk about snowball fights, hot cocoa or building a snowman in the Park.",
+  "visuals": {
+    "decor": ["snowman", "icicles", "scarf"],
+    "weather": "snow",
+    "tint": "#dceeff",
+    "ambient": { "timeOfDay": "day", "brightness": 0.85 }
+  }
+}

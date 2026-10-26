@@ -1,0 +1,13 @@
+{
+  "id": "summer-night-market",
+  "name": "Summer Night Market",
+  "windows": [{ "from": "07-01", "to": "08-15" }],
+  "priority": 10,
+  "topicHint": "A summer night market fills the Plaza. Talk about street food, stalls, fireflies or the warm evening.",
+  "visuals": {
+    "decor": ["market-stall", "string-lights", "paper-lantern"],
+    "weather": "clear",
+    "tint": "#1d3557",
+    "ambient": { "timeOfDay": "night", "brightness": 0.4 }
+  }
+}
