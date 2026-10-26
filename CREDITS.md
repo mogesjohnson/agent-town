@@ -15,4 +15,3 @@ Visual research (reference only; no source code or models copied):
 - Kenney Nature Kit, CC0: https://kenney.nl/assets/nature-kit
 - Three.js voxel geometry manual:
   https://github.com/mrdoob/three.js/tree/dev/examples
-

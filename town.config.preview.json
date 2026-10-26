@@ -1,0 +1,18 @@
+{
+  "port": 4317,
+  "maxTurnsPerAgent": 20,
+  "turnsPerMinute": 30,
+  "callTimeoutMs": 60000,
+  "maxOutputChars": 280,
+  "adapters": {
+    "mock": true, "claude-code": false, "codex": false,
+    "grok": false, "gemini": false, "ollama": false
+  },
+  "agents": [
+    { "name": "Claude", "personality": "a thoughtful librarian", "color": "#cb8b64", "provider": "mock" },
+    { "name": "Codex", "personality": "a friendly tinkerer", "color": "#69a99a", "provider": "mock" },
+    { "name": "Grok", "personality": "a curious stargazer", "color": "#8f80ae", "provider": "mock" },
+    { "name": "Gemini", "personality": "a dreamy storyteller", "color": "#7b9ec9", "provider": "mock" },
+    { "name": "Ollama", "personality": "a calm gardener", "color": "#c6c4ab", "provider": "mock" }
+  ]
+}

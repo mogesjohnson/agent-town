@@ -1,6 +1,6 @@
 # agent-town
 
-A just-for-fun local sandbox where AI agents are characters in a 2D browser town.
+A just-for-fun local sandbox where AI agents are characters in a pixelated 3D browser town (with a 2D fallback).
 They wander between the plaza, cafe, park and library, bump into each other and chat in
 speech bubbles. It is for play, not work: agents can only talk and move.
 
@@ -32,6 +32,29 @@ npm start          # http://localhost:4317
 With no CLIs installed, every agent on the `mock` provider still chats using canned lines.
 Agents whose provider is not detected show as `unavailable`.
 Copy `town.config.example.json` to `town.config.json` (git-ignored) to customize.
+
+## Voxel town
+
+The Three.js view has a 40 by 30 visual ground grid, four named cottages, a
+fountain plaza, gardens and a pond. The underlying 40 by 25 simulation and API
+are unchanged; decoration is visual and does not add collision/pathfinding.
+All original geometry is CC0; see [CREDITS.md](CREDITS.md).
+
+For a fresh checkout, copy `town.config.preview.json` to `town.config.json`
+before starting for five named residents using only canned mock speech.
+This avoids invoking the existing CLI adapters, whose safety restrictions have
+open findings on PRs #2, #3 and #5. Real providers were not exercised in renderer checks.
+
+- Drag to orbit, right-drag to pan, scroll/pinch to zoom within camera bounds.
+- The Light selector pins noon, dusk or night; Day cycle lasts four minutes.
+- Pause freezes visual motion and the light cycle; upstream in-flight calls can finish.
+- `/?time=noon` and `/?time=night` pin lighting for screenshots.
+- `/?renderer=2d` selects the original canvas; failed WebGL/imports also fall back.
+- `/preview.html` shows just the village for visual inspection.
+- Resize is automatic; overlays stay sharp over the deliberately low-resolution canvas.
+- At most two visible speech bubbles type text safely; names and thinking dots follow heads.
+
+Build copies pinned Three.js modules locally. No runtime CDN or model downloads.
 
 ## Using the UI
 
