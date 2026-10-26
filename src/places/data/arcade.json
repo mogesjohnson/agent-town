@@ -1,16 +1,9 @@
 {
-  "id": "arcade",
-  "name": "Pixel Palace Arcade",
-  "type": "fun",
-  "plot": { "x": 33, "y": 4 },
-  "footprint": { "w": 5, "h": 4 },
-  "sign": "PIXEL PALACE",
-  "color": "#9d4edd",
-  "hours": { "open": 12, "close": 24 },
+  "id": "arcade", "name": "Pixel Palace Arcade", "type": "fun",
+  "plot": { "x": 33, "y": 4 }, "footprint": { "w": 5, "h": 4 },
+  "sign": "PIXEL PALACE", "color": "#9d4edd", "hours": { "open": 12, "close": 24 },
   "vibe": "neon-lit, beeping and gloriously noisy",
   "items": ["prize tickets", "claw machine", "retro racer", "pinball", "rhythm game"],
   "topics": ["high scores", "favorite retro games", "rematches", "lucky streaks"],
-  "roles": [
-    { "id": "attendant", "title": "Arcade attendant", "keywords": ["game", "arcade", "hustler", "tinker"] }
-  ]
+  "roles": [{ "id": "attendant", "title": "Arcade attendant", "keywords": ["game", "arcade", "hustler", "tinker"] }]
 }

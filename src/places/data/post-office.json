@@ -1,16 +1,9 @@
 {
-  "id": "post-office",
-  "name": "Post Office",
-  "type": "civic",
-  "plot": { "x": 21, "y": 3 },
-  "footprint": { "w": 4, "h": 3 },
-  "sign": "POST OFFICE",
-  "color": "#bc6c25",
-  "hours": { "open": 8, "close": 17 },
+  "id": "post-office", "name": "Post Office", "type": "civic",
+  "plot": { "x": 21, "y": 3 }, "footprint": { "w": 4, "h": 3 },
+  "sign": "POST OFFICE", "color": "#bc6c25", "hours": { "open": 8, "close": 17 },
   "vibe": "orderly, papery and stamped with care",
   "items": ["stamps", "postcards", "parcel boxes", "letter paper"],
   "topics": ["pen pals", "far-away places", "the mail route", "collecting stamps"],
-  "roles": [
-    { "id": "postmaster", "title": "Postmaster", "keywords": ["post", "mail", "letter"] }
-  ]
+  "roles": [{ "id": "postmaster", "title": "Postmaster", "keywords": ["post", "mail", "letter"] }]
 }

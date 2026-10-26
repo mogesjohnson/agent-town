@@ -1,16 +1,9 @@
 {
-  "id": "bakery",
-  "name": "Sunrise Bakery",
-  "type": "shop",
-  "plot": { "x": 11, "y": 3 },
-  "footprint": { "w": 4, "h": 3 },
-  "sign": "SUNRISE BAKERY",
-  "color": "#f6bd60",
-  "hours": { "open": 6, "close": 14 },
+  "id": "bakery", "name": "Sunrise Bakery", "type": "shop",
+  "plot": { "x": 11, "y": 3 }, "footprint": { "w": 4, "h": 3 },
+  "sign": "SUNRISE BAKERY", "color": "#f6bd60", "hours": { "open": 6, "close": 14 },
   "vibe": "warm, flour-dusted and smelling of cinnamon",
   "items": ["sourdough loaf", "cinnamon roll", "pain au chocolat", "rye bread", "lemon tart"],
   "topics": ["the perfect crust", "early mornings", "secret family recipes", "pun-filled cake names"],
-  "roles": [
-    { "id": "baker", "title": "Baker", "keywords": ["bak", "bread", "pastr", "cake"] }
-  ]
+  "roles": [{ "id": "baker", "title": "Baker", "keywords": ["bak", "bread", "pastr", "cake"] }]
 }
