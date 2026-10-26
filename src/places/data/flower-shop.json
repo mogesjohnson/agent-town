@@ -1,0 +1,16 @@
+{
+  "id": "flower-shop",
+  "name": "Petal & Stem",
+  "type": "shop",
+  "plot": { "x": 16, "y": 3 },
+  "footprint": { "w": 3, "h": 3 },
+  "sign": "PETAL & STEM",
+  "color": "#ffafcc",
+  "hours": { "open": 8, "close": 17 },
+  "vibe": "fragrant, sunny and a little bit muddy",
+  "items": ["sunflowers", "tulip bouquets", "potted ferns", "seed packets", "dried lavender"],
+  "topics": ["what each flower means", "garden tips", "bouquets for friends", "seasonal blooms"],
+  "roles": [
+    { "id": "florist", "title": "Florist", "keywords": ["garden", "flower", "plant"] }
+  ]
+}

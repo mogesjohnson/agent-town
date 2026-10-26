@@ -1,0 +1,17 @@
+{
+  "id": "library",
+  "name": "Town Library",
+  "type": "civic",
+  "plot": { "x": 4, "y": 17 },
+  "footprint": { "w": 7, "h": 5 },
+  "anchor": "Library",
+  "sign": "LIBRARY",
+  "color": "#a5a58d",
+  "hours": { "open": 9, "close": 18 },
+  "vibe": "hushed, cozy and full of creaky shelves",
+  "items": ["mystery novels", "star atlases", "poetry pamphlets", "old town maps", "picture books"],
+  "topics": ["favorite books", "the town's history", "whispered gossip", "what to read next"],
+  "roles": [
+    { "id": "librarian", "title": "Librarian", "keywords": ["librar", "book", "read"] }
+  ]
+}
