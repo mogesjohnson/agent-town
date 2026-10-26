@@ -7,14 +7,14 @@ each agent's system prompt, so mood, backstory and goals change how the agent ta
 
 ```
 npm run build
-node dist/personalities/editor-server.js   # editor on http://localhost:4318
-npm start                                  # the town, in another terminal
+npm start      # town on http://localhost:4317: "Personalities" panel under the lobby,
+               # full-page editor at http://localhost:4317/personalities/
+node dist/personalities/editor-server.js   # optional standalone editor on http://localhost:4318
 ```
 
-The editor lists every agent from `town.config.json` (or the example config). Pick one,
-set its fields, press **Save**. Saves go to `town.personalities.json` in the repo root.
-The sim re-reads that file when it changes, so the next line an agent says uses it.
-No file means no change to the sim. The editor starts from `sample.personalities.json`.
+Pick an agent, set its fields, press **Save**. Saves go to `town.personalities.json` in the
+repo root. The sim re-reads that file when it changes, so the next line an agent says uses it.
+No file means no change to the sim. With no saved file, the editor opens on `sample.personalities.json`.
 
 ## File format
 
@@ -43,14 +43,15 @@ character calls itself in conversation; the lobby still shows the config name.
 - The UI renders user text with `textContent` only, never `innerHTML`.
 - Prompt text is flattened to single lines, capped again, and framed as flavor notes that cannot
   override the town's role-play rules.
-- The editor server binds to 127.0.0.1, checks the `Host` header and only accepts JSON bodies up to 64 KB.
+- Everything binds to 127.0.0.1; the editor routes check the `Host` header and accept only JSON bodies up to 64 KB.
 
 ## Files
 
 - `schema.ts`: types, limits, `validatePersonalities()`.
 - `store.ts`: load (cached by mtime) and atomic save.
 - `prompt.ts`: `personalityLines(agentName)`, the sanitized prompt notes.
-- `editor-server.ts`: editor request handler, plus standalone mode when run directly. `ui/`: the editor page.
 - `extension.ts`: `register(ctx)` for the shared loader in `src/extensions.ts`. It pushes a prompt hook
-  and adds routes so the town server also serves the editor at `/personalities/`. It takes effect once
-  `server.ts` and the sim call `loadExtensions()` and run `promptHooks`.
+  and adds the `/api/personalities` (GET, PUT/POST) and `/personalities/` routes.
+- `editor-server.ts`: the request handler for those routes, plus standalone mode when run directly.
+- `../../public/extensions/personalities.js`: `mount({ slot, api })` renders the editor in `slot.panel`.
+- `ui/`: the full-page editor, which mounts the same panel module.
