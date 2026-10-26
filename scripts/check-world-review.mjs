@@ -42,13 +42,12 @@ try {
   await page.waitForFunction((left) => document.querySelector('[data-map-building="cottage-claude"]').style.left === left, before);
   for (const style of ["voxel", "2d"]) {
     await page.goto(`${base}/?style=${style}${style === "2d" ? "&renderer=2d" : ""}`);
-    if (style === "voxel") {
-      await page.locator('[data-map="ready"]').waitFor();
-      assert.equal((await inspect()).cottages.length, 4);
-    } else assert.equal(await page.locator("#town").isVisible(), true);
+    await page.locator('[data-map="ready"][data-style="natural"]').waitFor();
+    assert.equal((await inspect()).cottages.length, 4);
+    assert.equal(await page.locator("#town").isVisible(), false, "retired style flags cannot select 2D");
   }
   assert.deepEqual(errors, []);
-  console.log("PASS: authoritative scenery, one cottage per id, night glow, live move/undo, voxel and 2D");
+  console.log("PASS: authoritative scenery, one cottage per id, night glow, live move/undo and retired flags ignored");
 } finally {
   if (edit) await post("/api/map/undo", { editId: edit.editId, actor: "codex-review" });
   await browser.close();
