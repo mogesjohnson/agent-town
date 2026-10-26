@@ -54,9 +54,23 @@ broadcast already shows a move, and open on-duty staff walk there. A removed bui
 its place (closed, staff released, hidden on the map) until undo brings the id back. Without the
 editor `GET /api/map` is 404, anchors match `LANDMARKS` names, and nothing ever moves.
 
+## Custom places (`custom.ts`)
+
+Local API (the server binds 127.0.0.1). Errors are `{ ok: false, error }`.
+
+- `GET /api/places/types` → 200 `{ types: [{ type, w, h, template, roles }] }`.
+- `POST /api/places` `{ type, name, x, y, id?, w?, h?, hours?, vibe?, items?, topics? }`: copies
+  the first built-in of that type (not anchored if possible), runs the data-file checks, and refuses
+  overlap with any place or any building where it is now (`LANDMARKS`, incl. map editor edits).
+  201 `{ ok: true, place }`, 400 bad field, 409 taken id or overlap. Saved, enabled, staffed first
+  (still at most half the town works). The map editor then protects it like other non-anchored places.
+- `DELETE /api/places/:id` → 200 `{ ok: true, id }`, 403 built-in, 404 unknown. Staff are released
+  (`idle` only if still `working`).
+
 ## State (`store.ts`)
 
-Enabled ids are saved atomically to `.runtime/places.json` (git-ignored). Default on: bakery,
+Enabled ids and custom places are saved atomically to `.runtime/places.json` (git-ignored);
+saved custom places are re-checked on start and skipped with a log line if invalid. Default on: bakery,
 café, diner, flower shop, library, park.
 
 ## Client (`public/extensions/places.js`)
