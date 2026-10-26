@@ -14,10 +14,10 @@ export interface RadioConfig {
 
 export const RADIO_DEFAULTS: RadioConfig = {
   enabled: true,
-  provider: "claude-code",
-  model: "haiku",
+  provider: "mock",
+  model: "canned",
   segmentEveryHours: 3,
-  maxCallsPerDay: 4,
+  maxCallsPerDay: 0,
   afterCap: "template",
   realSecondsPerGameHour: 60,
   tts: false,
@@ -48,7 +48,7 @@ export interface Segment {
 /** Merge a partial `radio` block from the town config over the defaults, ignoring bad values. */
 export function readRadioConfig(raw: unknown): RadioConfig {
   const r = (raw && typeof raw === "object" ? raw : {}) as Partial<Record<keyof RadioConfig, unknown>>;
-  const num = (v: unknown, d: number, min: number) => (typeof v === "number" && v >= min ? v : d);
+  const num = (v: unknown, d: number, min: number) => (typeof v === "number" && Number.isFinite(v) && v >= min ? v : d);
   return {
     enabled: typeof r.enabled === "boolean" ? r.enabled : RADIO_DEFAULTS.enabled,
     provider: typeof r.provider === "string" ? (r.provider as ProviderId) : RADIO_DEFAULTS.provider,
