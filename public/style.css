@@ -57,6 +57,12 @@ aside { min-width: 0; }
 .style-panel button { margin: 8px 8px 0 0; padding: 9px 12px; cursor: pointer;
   border: 1px solid #718a7b; border-radius: 6px; color: #eee; background: #304a43; }
 .style-panel button[aria-pressed="true"] { border-color: #e4c78e; color: #ffe3ab; }
+.town-stage[data-style="natural"] canvas { image-rendering: auto; }
+.explore-controls { position: absolute; top: 12px; left: 12px; right: 12px;
+  display: flex; gap: 10px; align-items: center; color: #fff; font-size: 12px; }
+.explore-controls select, .explore-controls span, .explore-controls output {
+  padding: 7px; border-radius: 5px; background: #1e3029e6; color: #fff; border: 0; }
+@media (max-width: 650px) { .explore-controls span { display: none; } }
 @media (max-width: 850px) {
   main { grid-template-columns: minmax(0, 1fr); }
   main > .town-stage { height: 460px; }
