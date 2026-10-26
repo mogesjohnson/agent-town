@@ -94,6 +94,8 @@ export function register({ town, routes, on, promptHooks }: Ctx) {
     try { body = await readJson(req) as { agent?: unknown }; }
     catch (e) { return send(res, 400, { error: (e as Error).message }); }
     const agent = body?.agent;
+    if (!body || typeof body !== "object" || Array.isArray(body))
+      return send(res, 400, { error: "JSON object required" });
     if (agent !== undefined && (typeof agent !== "string" || !known().has(agent)))
       return send(res, 400, { error: "agent must name a resident" });
     forget(book, typeof agent === "string" ? agent : undefined);

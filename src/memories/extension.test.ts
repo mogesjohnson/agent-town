@@ -22,6 +22,7 @@ function town() {
   ];
   const sim = new Town({ ...DEFAULT_CONFIG, agents }, new Map(), () => {});
   sim.setAgents(agents, new Map([["mock", { available: true }]]));
+  for (const agent of sim.agents) { agent.x = agent.y = 0; }
   const events = new Map<string, (data: unknown) => void>();
   const hooks: Town["promptHooks"] = [];
   const routes = new Routes();
@@ -75,6 +76,10 @@ test("pause blocks new visits, and forget is an explicit reset", async () => {
   assert.equal(forgotten.status, 200);
   assert.equal(forgotten.json.residents.length, 0);
   events.get("say")?.({ from: "Narrator", to: "All", text: "Market day" });
+  for (const invalid of [null, [], "reset", 0]) {
+    assert.equal((await call(routes, "POST", "/api/memories/forget", invalid)).status, 400);
+    assert.equal(memoryOf(sim).town.length, 1);
+  }
   const reset = await call(routes, "POST", "/api/memories/forget", {});
   assert.equal(reset.json.town.length, 0);
   const listed = await call(routes, "GET", "/api/memories");
