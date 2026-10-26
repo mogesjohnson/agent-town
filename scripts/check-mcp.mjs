@@ -91,6 +91,17 @@ try {
   assert.equal(relocated.x, spot.x); assert.equal(relocated.y, spot.y); assert.equal(relocated.enabled, false);
   assert.equal((await post(path, { x: place.x, y: place.y })).status, 200);
   await post("/api/places/toggle", { id: place.id, enabled: true });
+  await error("move_place", { id: place.id, x: 39, y: 24, dryRun: true });
+  const changesBefore = (await call("get_changes")).length;
+  await call("move_place", { id: place.id, ...spot, dryRun: true });
+  assert.equal((await call("get_changes")).length, changesBefore);
+  assert.equal((await call("get_places")).places.places.find((p) => p.id === place.id).x, place.x);
+  const moved = await call("move_place", { id: place.id, ...spot });
+  assert.equal(moved.undoable, true);
+  assert.equal(moved.after.x, spot.x);
+  assert((await call("get_map")).places.some((p) => p.id === place.id && p.x === spot.x && p.y === spot.y));
+  await call("undo_last_change");
+  assert.equal((await call("get_places")).places.places.find((p) => p.id === place.id).x, place.x);
   assert((await call("get_map")).places.some((p) => p.id === place.id));
   await call("remove_place", { id: place.id });
   assert(!(await call("get_places")).places.places.some((p) => p.id === place.id));
@@ -98,7 +109,7 @@ try {
   assert((await call("get_places")).places.places.some((p) => p.id === place.id));
   await call("undo_last_change");
   assert(!(await call("get_places")).places.places.some((p) => p.id === place.id));
-  console.log(`pass: MCP handshake, ${tools.tools.length} tools, resources, invalid/valid previews, building add/move/remove/undo and place preview/add/read/remove/undo`);
+  console.log(`pass: MCP handshake, ${tools.tools.length} tools, resources, invalid/valid previews, building and place add/move/read/remove/undo`);
 } finally {
   await client.close();
   server.kill();
