@@ -8,7 +8,7 @@ import assets from "./natural-assets-manifest.mjs";
 const root = new URL("../public/assets/natural/", import.meta.url);
 const hash = (data) => createHash("sha256").update(data).digest("hex");
 for (const [path, url, digest] of assets) {
-  if (path.includes("..") || !/\.(jpg|bin|gltf)$/.test(path)) throw Error("Invalid asset path");
+  if (path.includes("..") || !/\.(jpg|bin|gltf|glb)$/.test(path)) throw Error("Invalid asset path");
   const destination = new URL(path, root);
   const cached = await readFile(destination).catch(() => null);
   if (cached && hash(cached) === digest) continue;

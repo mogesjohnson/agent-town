@@ -1,4 +1,5 @@
 export default [
+  ["robot.glb", "https://raw.githubusercontent.com/mrdoob/three.js/r186/examples/models/gltf/RobotExpressive/RobotExpressive.glb", "047f5e5fb3bb6d378bd1df16ca6137f2a596c99b3a1b5690b4020c05aaf6f319"],
   ["forrest_ground_01/forrest_ground_01_diff_1k.jpg","https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/forrest_ground_01/forrest_ground_01_diff_1k.jpg","3dd6875cb3908e022a3c45ebbffa5e84c670ff2691fbbb6dc9ea4bff88523800"],
   ["forrest_ground_01/forrest_ground_01_nor_gl_1k.jpg","https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/forrest_ground_01/forrest_ground_01_nor_gl_1k.jpg","32528a7cdee962cc0b248ee4023a74d0df175737ea90e1eb425122351e0bdab4"],
   ["forrest_ground_01/forrest_ground_01_rough_1k.jpg","https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/forrest_ground_01/forrest_ground_01_rough_1k.jpg","30d8b56a03d7b12da16f58011b675662a40e58e1cdc768119a5f03968140058c"],

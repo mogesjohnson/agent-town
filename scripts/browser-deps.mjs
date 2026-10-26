@@ -8,3 +8,7 @@ for (const name of ["three.module.js", "three.core.js"]) {
 await copyFile("node_modules/three/examples/jsm/controls/OrbitControls.js",
   "public/vendor/OrbitControls.js");
 await copyFile("node_modules/three/LICENSE", "public/vendor/THREE-LICENSE.txt");
+for (const name of ["loaders/GLTFLoader.js", "utils/BufferGeometryUtils.js", "utils/SkeletonUtils.js"]) {
+  await mkdir(`public/vendor/${name.split("/")[0]}`, { recursive: true });
+  await copyFile(`node_modules/three/examples/jsm/${name}`, `public/vendor/${name}`);
+}
