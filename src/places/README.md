@@ -43,6 +43,16 @@ pair). Shift end, toggle-off or losing the job sets `idle` again, only if it is 
 Only `idle`, `walking` or our own `working` agents are hired, walked or greeted; any other status
 (e.g. `playing` from another extension) is left alone.
 
+## Moving landmarks (`anchors.ts`)
+
+Anchored places follow their landmark. The map editor (#22) rewrites the sim's `LANDMARKS`
+array in place on every edit (`{ name: building.name ?? building.id, x, y, w, h, color }`).
+Its `map:changed` event goes only to SSE clients, not to the `on()` bus, so each tick (and each
+`state()`) compares `LANDMARKS` with the anchors, matching names case-insensitively. On a change
+the place takes the new `plot`/`footprint`, and open on-duty staff outside it walk there (our
+`working` status is lifted first). Nothing is polled over HTTP. Without the map editor `LANDMARKS`
+never changes, so this does nothing; a removed landmark leaves its place at the last spot.
+
 ## State (`store.ts`)
 
 Enabled ids are saved atomically to `.runtime/places.json` (git-ignored). Default on: bakery,
