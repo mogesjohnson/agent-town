@@ -58,8 +58,10 @@ export function promptLines(agent: Agent, job: Job | undefined, places: Place[],
   return lines.length > 1 ? lines : [];
 }
 
-const busy = (a: Agent, now: number) =>
-  !a.available || !["idle", "walking"].includes(a.status) || a.cooldownUntil > now + 120_000; // held by a minigame
+/** Our own status for on-duty staff. Any other non-sim status (e.g. "playing") belongs to another extension. */
+export const WORKING = "working";
+/** Free for places: idle or wandering, or already on shift with us. Anything else is left alone. */
+export const free = (a: Agent) => a.available && ["idle", "walking", WORKING].includes(a.status);
 
 /** Move on-duty workers to their place and let them greet nearby visitors (no model calls). */
 export function workTick(town: Town, jobs: Job[], places: Place[], hour: number, greeted: Map<string, number>) {
@@ -67,11 +69,11 @@ export function workTick(town: Town, jobs: Job[], places: Place[], hour: number,
   const byName = new Map(town.agents.map((a) => [a.cfg.name, a] as const));
   for (const job of jobs) {
     const w = byName.get(job.agent), p = places.find((x) => x.id === job.place);
-    if (!w || !p || !isOpen(p, hour) || busy(w, now)) continue;
+    if (!w || !p || !isOpen(p, hour) || !free(w)) continue;
     if (!inside(p, w.tx, w.ty)) { w.tx = p.plot.x + Math.floor(Math.random() * p.footprint.w); w.ty = p.plot.y + Math.floor(Math.random() * p.footprint.h); }
     if (!inside(p, w.x, w.y) || w.bubble) continue;
     for (const v of town.agents) {
-      if (v === w || busy(v, now) || jobs.some((j) => j.agent === v.cfg.name && j.place === p.id) || !inside(p, v.x, v.y, 1)) continue;
+      if (v === w || !free(v) || jobs.some((j) => j.agent === v.cfg.name && j.place === p.id) || !inside(p, v.x, v.y, 1)) continue;
       const key = `${w.cfg.name}>${v.cfg.name}@${p.id}`;
       if ((greeted.get(key) ?? 0) > now) continue;
       greeted.set(key, now + 90_000);

@@ -1,7 +1,7 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Town } from "../sim.js";
 import { loadCatalog, type Place } from "./catalog.js";
-import { assignJobs, Clock, isOpen, type Job, promptLines, workTick } from "./jobs.js";
+import { assignJobs, Clock, free, isOpen, type Job, promptLines, workTick } from "./jobs.js";
 import { EnabledStore } from "./store.js";
 
 type Handler = (req: IncomingMessage, res: ServerResponse, url: URL) => unknown;
@@ -37,10 +37,11 @@ export function register(ctx: Ctx) {
   let jobs: Job[] = [], signature = "";
   const enabled = () => catalog.filter((p) => store.isEnabled(p.id));
   const refreshJobs = () => {
-    const staff = town.agents.filter((a) => a.available); // unavailable agents never move
-    const sig = staff.map((a) => a.cfg.name).join(",") + "|" + store.enabledIds().join(",");
+    // Re-hire only when availability or toggles change, not on every status flip.
+    const sig = town.agents.filter((a) => a.available).map((a) => a.cfg.name).join(",") + "|" + store.enabledIds().join(",");
     if (sig === signature) return;
     signature = sig;
+    const staff = town.agents.filter(free); // skip agents another extension holds (e.g. "playing")
     jobs = assignJobs(staff.map((a) => ({ name: a.cfg.name, personality: a.cfg.personality })), enabled());
     console.log(`[places] jobs: ${jobs.map((j) => `${j.agent}=${j.role}@${j.place}`).join(", ") || "none"}`);
   };
