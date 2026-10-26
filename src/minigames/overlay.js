@@ -1,5 +1,5 @@
 // minigames overlay: renderer-agnostic DOM panel. It only reads /events; it never draws on the town canvas.
-// Load with <script type="module" src="/minigames/overlay.js"></script> from any client page.
+// Load with <script src="/minigames/overlay.js"></script> from any client page.
 (() => {
   if (document.getElementById("mg-overlay")) return;
   const box = document.createElement("div");
