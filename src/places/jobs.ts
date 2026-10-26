@@ -72,6 +72,8 @@ export function endShifts(town: Town, shifts: Shifts, stillOn: (agent: string, p
     if (stillOn(name, place)) continue;
     const a = town.agents.find((x) => x.cfg.name === name);
     if (a?.status === WORKING) a.status = "idle";
+    // Keep tracking while busy (e.g. chatting): the sim restores "working" afterwards.
+    else if (a && !["idle", "walking"].includes(a.status)) continue;
     shifts.delete(name);
   }
 }
@@ -100,6 +102,7 @@ export function workTick(town: Town, jobs: Job[], places: Place[], hour: number,
     const w = byName.get(job.agent), p = places.find((x) => x.id === job.place);
     if (!w || !p || !isOpen(p, hour) || !free(w)) continue;
     onDuty.add(`${job.agent}@${p.id}`);
+    if (w.status === WORKING && !inside(p, w.x, w.y)) w.status = "idle"; // e.g. the place moved mid-chat
     if (shifts.get(job.agent) !== p.id || w.status !== WORKING) {
       walkInto(p, w);
       if (!inside(p, w.x, w.y)) continue;
