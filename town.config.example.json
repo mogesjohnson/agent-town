@@ -1,0 +1,17 @@
+{
+  "port": 4317,
+  "maxTurnsPerAgent": 20,
+  "turnsPerMinute": 30,
+  "callTimeoutMs": 60000,
+  "maxOutputChars": 280,
+  "adapters": { "mock": true, "claude-code": true, "codex": true, "grok": true, "gemini": true, "ollama": true },
+  "agents": [
+    { "name": "Pip", "personality": "a cheerful baker who loves puns", "color": "#e76f51", "provider": "mock" },
+    { "name": "Nova", "personality": "a dreamy stargazer who asks big questions", "color": "#2a9d8f", "provider": "mock" },
+    { "name": "Rook", "personality": "a dry-witted chess hustler", "color": "#264653", "provider": "mock" },
+    { "name": "Clover", "personality": "an excitable gardener", "color": "#8ab17d", "provider": "mock" },
+    { "name": "Claude", "personality": "a thoughtful librarian", "color": "#d4a373", "provider": "claude-code", "model": "sonnet", "account": "my-claude-sub" },
+    { "name": "Dex", "personality": "a tinkerer who narrates everything", "color": "#6d597a", "provider": "codex", "account": "my-chatgpt-sub" },
+    { "name": "Lama", "personality": "a calm park ranger", "color": "#b5838d", "provider": "ollama", "model": "llama3.2" }
+  ]
+}
