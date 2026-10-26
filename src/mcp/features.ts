@@ -2,16 +2,26 @@
 // The town checks everything again; these add palette checks, dryRun previews and revert info.
 import type { Args } from "./schema.js";
 import { OpError, type Run, type Self } from "./ops.js";
+import { TownMap, MapError, type MapData } from "../mapeditor/model.js";
 
 type Building = { id: string; type: string; x: number; y: number; w: number; h: number; name?: string };
-type MapJson = { width: number; height: number; tiles: string[][]; buildings: Building[]; version: number };
+type MapJson = MapData & { version: number; places?: (Building & { anchor?: string })[] };
 
 /** The map editor tags edits with "claude" or "codex". */
 const who = (actor: string) => (/codex/i.test(actor) ? "codex" : "claude");
 
 export function featureOps(self: Self): Record<string, Run> {
   const map = (): Promise<MapJson> => self("/api/map");
-  const palette = (): Promise<{ tiles: string[]; buildings: string[] } | null> => self("/api/map/palette").catch(() => null);
+  // Reuse the editor's pure model so preview and apply enforce identical rules.
+  const previewMap = (m: MapJson) => {
+    const model = new TownMap(() => (m.places ?? []).filter((p) => !p.anchor));
+    model.map = structuredClone(m);
+    return model;
+  };
+  const preview = <T>(run: () => T): T => {
+    try { return run(); }
+    catch (e) { throw e instanceof MapError ? new OpError(e.message, e.status) : e; }
+  };
   const inside = (m: MapJson, x: number, y: number) => {
     if (x >= m.width || y >= m.height) throw new OpError(`cell ${x},${y} is outside the ${m.width}x${m.height} map`);
   };
@@ -29,26 +39,23 @@ export function featureOps(self: Self): Record<string, Run> {
 
   return {
     "map.paint": async (a: Args<"map.paint">, dry, actor) => {
-      const [m, pal] = await Promise.all([map(), palette()]);
-      for (const t of a.tiles) {
-        inside(m, t.x, t.y);
-        if (pal && !pal.tiles.includes(t.type)) throw new OpError(`unknown tile type ${t.type}; palette: ${pal.tiles.join(", ")}`);
-      }
+      const m = await map();
+      const planned = preview(() => previewMap(m).setTiles(a.tiles, who(actor)));
       const before = a.tiles.map(({ x, y }) => ({ x, y, type: m.tiles[y]?.[x] }));
-      return edit("/api/map/tiles", { tiles: a.tiles }, dry, actor, before, a.tiles);
+      return edit("/api/map/tiles", { tiles: a.tiles }, dry, actor, before,
+        { changed: planned.changed, skipped: planned.skipped });
     },
     "map.add": async (a: Args<"map.add">, dry, actor) => {
-      const [m, pal] = await Promise.all([map(), palette()]);
-      inside(m, a.x, a.y);
-      if (pal && !pal.buildings.includes(a.type)) throw new OpError(`unknown building type ${a.type}; palette: ${pal.buildings.join(", ")}`);
-      if (a.id && m.buildings.some((b) => b.id === a.id)) throw new OpError(`id ${a.id} already exists`, 409);
-      return edit("/api/map/buildings", { op: "add", ...a }, dry, actor, null, { ...a, note: "overlap is checked when applied" });
+      const m = await map();
+      const planned = preview(() => previewMap(m).building({ op: "add", ...a }, who(actor)));
+      return edit("/api/map/buildings", { op: "add", ...a }, dry, actor, null, planned.building);
     },
     "map.move": async (a: Args<"map.move">, dry, actor) => {
       const m = await map();
       inside(m, a.x, a.y);
       const b = building(m, a.id);
-      return edit("/api/map/buildings", { op: "move", ...a }, dry, actor, b, { ...b, x: a.x, y: a.y, ...(a.name ? { name: a.name } : {}) });
+      const planned = preview(() => previewMap(m).building({ op: "move", ...a }, who(actor)));
+      return edit("/api/map/buildings", { op: "move", ...a }, dry, actor, b, planned.building);
     },
     "map.remove": async (a: Args<"map.remove">, dry, actor) => {
       const b = building(await map(), a.id);

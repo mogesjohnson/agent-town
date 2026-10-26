@@ -39,6 +39,19 @@ The MCP server starts even when the town is not running. Tools then answer
 
 Every view is a resource and a matching read-only tool.
 
+Start world additions with `get_world` (`town://world`): one compact overview contains
+agent positions, places, buildings, terrain counts, available place types and the map
+palette. Its HTTP reads run in parallel; it omits chat history and the full tile grid.
+Use `get_map` only when individual cells are needed. `add_place` can find free space
+near a place, building or pond automatically. Map add/move/paint previews run the same
+pure validation as the editor, including footprints, overlap and reserved-place skips;
+another writer may still change the world between preview and apply.
+
+Run `npm run build` then `node scripts/check-mcp.mjs` for an actual SDK stdio handshake
+and isolated mock-town checks of resources, tools, preview, add/move/remove and undo.
+The test uses a disposable data directory and port 4329 (`MCP_CHECK_PORT` overrides it),
+never the user's running town or real provider adapters.
+
 | Resource | Tool | Source |
 | --- | --- | --- |
 | `town://town` | `get_town` | `GET /api/state`: size, landmarks, paused, usage, agents, last 50 lines |
