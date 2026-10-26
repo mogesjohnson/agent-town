@@ -3,11 +3,14 @@
 import { W, H, type Town } from "../sim.js";
 import type { AgentConfig } from "../types.js";
 import { schemas, type Args, type OpName } from "./schema.js";
+import { featureOps } from "./features.js";
 import { lastUndoable, readOverlay, record, writeOverlay } from "./store.js";
 
 export class OpError extends Error { constructor(msg: string, public status = 400) { super(msg); } }
 
-interface Result { before: unknown; after: unknown; revert?: { op: string; args: unknown } }
+export interface Result { before: unknown; after: unknown; revert?: { op: string; args: unknown } }
+export type Run = (args: any, dry: boolean, actor: string) => Promise<Result>;
+export type Self = (path: string, body?: unknown) => Promise<any>;
 type SeasonEvent = Args<"season.upsert">;
 type Active = { custom: string | null; ext: { source: string; id: string | null } | null };
 
@@ -16,7 +19,7 @@ const rnd = (n: number) => Math.floor(Math.random() * n);
 
 export function makeOps(town: Town) {
   let custom: string | null = null; // active custom season event id
-  const self = async (path: string, body?: unknown) => {
+  const self: Self = async (path, body) => {
     const init = body === undefined ? {} : { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) };
     const res = await fetch(`http://127.0.0.1:${town.config.port}${path}`, { ...init, signal: AbortSignal.timeout(5_000) });
     const data = await res.json().catch(() => null);
@@ -58,7 +61,8 @@ export function makeOps(town: Town) {
     return { before, after: a, revert: { op: "season.active", args: before } };
   };
 
-  const ops: Record<string, (args: any, dry: boolean) => Promise<Result>> = {
+  const ops: Record<string, Run> = {
+    ...featureOps(self),
     "agent.restore": restoreAgent,
     "agent.upsert": (a: Args<"agent.upsert">, dry) => {
       const cur = find(a.name);
@@ -84,7 +88,7 @@ export function makeOps(town: Town) {
       if (!dry) { writeOverlay("seasons", id, event); if (!event && custom === id) custom = null; }
       return { before, after: event, revert: { op: "season.restore", args: { id, event: before } } };
     },
-    "season.upsert": (a: Args<"season.upsert">, dry) => ops["season.restore"]({ id: a.id, event: a }, dry),
+    "season.upsert": (a: Args<"season.upsert">, dry, actor) => ops["season.restore"]({ id: a.id, event: a }, dry, actor),
     "season.active": setActive,
     "event.trigger": async (a: Args<"event.trigger">, dry) => {
       let r: Result = { before: null, after: null };
@@ -119,7 +123,7 @@ export function makeOps(town: Town) {
     if (!Object.hasOwn(schemas, op)) throw new OpError(`unknown op "${op.slice(0, 40)}"`);
     const parsed = schemas[op as OpName].safeParse(args ?? {});
     if (!parsed.success) throw new OpError(parsed.error.issues.map((i) => `${i.path.join(".") || "args"}: ${i.message}`).join("; "));
-    const { revert, ...r } = await ops[op](parsed.data, dryRun);
+    const { revert, ...r } = await ops[op](parsed.data, dryRun, actor);
     if (dryRun) return { ok: true, dryRun: true, op, ...r, undoable: !!revert };
     const c = record({ actor, op, args: parsed.data, ...r, revert });
     return { ok: true, change: c.id, op, ...r, undoable: !!revert };
@@ -129,7 +133,7 @@ export function makeOps(town: Town) {
   async function undo(actor: string, dryRun = false) {
     const c = lastUndoable();
     if (!c?.revert) throw new OpError("nothing to undo", 409);
-    const { revert: _r, ...r } = await ops[c.revert.op](c.revert.args, dryRun);
+    const { revert: _r, ...r } = await ops[c.revert.op](c.revert.args, dryRun, actor);
     if (dryRun) return { ok: true, dryRun: true, undoes: c.id, op: c.op, ...r };
     const u = record({ actor, op: "undo", args: { change: c.id, op: c.op }, ...r, undoOf: c.id });
     return { ok: true, change: u.id, undid: c.id, op: c.op, ...r };
