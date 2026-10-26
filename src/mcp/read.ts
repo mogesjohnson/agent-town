@@ -20,6 +20,8 @@ export const VIEWS: View[] = [
     load: async (b) => value(await state(b), (d: State) => d.log ?? []) },
   { name: "places", title: "Places", description: "Landmarks on the town map, plus the places feature's data when its route exists.",
     load: async (b) => ({ landmarks: value(await state(b), (d: State) => d.landmarks ?? []), places: value(await call(b, "/api/places")) }) },
+  { name: "place_types", title: "Place types", description: "Types add_place accepts, with default footprint w x h, template place and staff roles (places feature).",
+    load: async (b) => value(await call(b, "/api/places/types")) },
   { name: "seasons", title: "Seasons", description: "Active seasonal event, topic hint, visuals and the event list (seasons extension).",
     load: async (b) => value(await call(b, "/api/season")) },
   { name: "personalities", title: "Personalities", description: "Personality text per agent from config, plus the personalities editor data when installed.",
