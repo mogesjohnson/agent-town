@@ -31,5 +31,3 @@ and events, and the agent's effective mood is added to its prompt.
   `until` is an ISO string in real time: `now + durationMinutes x 1.6 s` (0.25 game minutes per 400 ms tick).
 - SSE: `event: moods` with the `GET` body, every 5 ticks and after each POST.
 
-Note: `Routes` in `src/extensions.ts` only matches exact paths, so `register()` wraps `routes.find` on
-its instance to add a fallback for `POST /api/moods/<name>`. A built-in prefix or `:param` route would replace that.

@@ -1,6 +1,6 @@
 /** Agent moods and needs: tick-driven needs, mood resolution, prompt hook and /api/moods. */
 import type { IncomingMessage, ServerResponse } from "node:http";
-import type { Handler, PromptHook, Routes } from "../extensions.js";
+import type { PromptHook, Routes } from "../extensions.js";
 import type { Agent, Town } from "../sim.js";
 import { LANDMARKS } from "../sim.js";
 import {
@@ -147,9 +147,8 @@ export async function register(ctx: Ctx) {
   });
 
   ctx.routes.add("GET", "/api/moods", (_req, res) => send(res, 200, all()));
-  const post: Handler = async (req, res, url) => {
-    let raw = url.pathname.slice("/api/moods/".length);
-    try { raw = decodeURIComponent(raw); } catch { return send(res, 400, { error: "bad agent name" }); }
+  // Params arrive URL-decoded from Routes; the name matches case-insensitively.
+  ctx.routes.add("POST", "/api/moods/:agent", async (req, res, _url, { agent: raw }) => {
     const a = town.agents.find((x) => x.cfg.name.toLowerCase() === raw.toLowerCase());
     if (!a) return send(res, 404, { error: "unknown agent" });
     let b: unknown;
@@ -158,9 +157,5 @@ export async function register(ctx: Ctx) {
     if (err) return send(res, 400, { error: err });
     broadcast();
     send(res, 200, moodOf(a.cfg.name));
-  };
-  // Routes matches exact paths only, so add a prefix fallback for POST /api/moods/:agent on this instance.
-  const find = ctx.routes.find.bind(ctx.routes);
-  ctx.routes.find = (method: string, path: string) =>
-    find(method, path) ?? (method.toUpperCase() === "POST" && /^\/api\/moods\/[^/]+$/.test(path) ? post : undefined);
+  });
 }
