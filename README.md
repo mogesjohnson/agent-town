@@ -1,5 +1,10 @@
 # agent-town
 
+The **Styles** tab preserves **Cozy voxel** and **Classic 2D**. The natural style
+adds perspective exploration: choose **Third person · You**, use WASD or arrows,
+Shift to run, drag to look and scroll to zoom. Keyboard movement stops while
+typing or paused. **Town overview** returns to a distant orbit camera.
+
 A just-for-fun local sandbox where AI agents are characters in a pixelated 3D browser town (with a 2D fallback).
 They wander between the plaza, cafe, park and library, bump into each other and chat in
 speech bubbles. It is for play, not work: agents can only talk and move.

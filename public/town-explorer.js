@@ -23,6 +23,8 @@ export function createExplorer(view, host) {
   const help = document.createElement("span");
   help.textContent = "WASD / arrows · Shift to run · drag to look · scroll to zoom";
   bar.append(select, help); host.append(bar);
+  const position = document.createElement("output");
+  position.setAttribute("aria-label", "Visitor position"); bar.append(position);
   const keys = new Set(), ray = new THREE.Raycaster();
   let paused = false, last = 0, active = false;
   const typing = () => /^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(document.activeElement?.tagName) ||
@@ -52,6 +54,7 @@ export function createExplorer(view, host) {
   function animate(now) {
     const dt = Math.max(0, Math.min((now - (last || now)) / 1000, 0.05)); last = now;
     if (!active) return;
+    position.textContent = `${avatar.position.x.toFixed(2)}, ${avatar.position.z.toFixed(2)}`;
     if (typing()) clear();
     const forward = camera.getWorldDirection(new THREE.Vector3()); forward.y = 0; forward.normalize();
     const right = forward.clone().cross(camera.up);
