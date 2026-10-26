@@ -2,7 +2,7 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Town } from "../sim.js";
 import { loadCatalog, type Place } from "./catalog.js";
 import { followAnchors } from "./anchors.js";
-import { assignJobs, Clock, endShifts, free, isOpen, type Job, promptLines, retarget, type Shifts, workTick } from "./jobs.js";
+import { assignJobs, Clock, endShifts, free, isOpen, type Job, promptLines, retarget, type Shifts, workTick, WORKING } from "./jobs.js";
 import { EnabledStore } from "./store.js";
 
 type Handler = (req: IncomingMessage, res: ServerResponse, url: URL) => unknown;
@@ -11,6 +11,7 @@ interface Ctx {
   routes: { add(method: string, path: string, h: Handler): void };
   on(event: string, fn: (d: unknown) => void): void;
   promptHooks: ((prompt: string, info: { agent: string; partner: string }) => string)[];
+  chattyStatuses?: Set<string>; // from #15 83f7542; absent on older loaders
 }
 
 /** Renderer-agnostic view of one place, in map tiles (origin top-left, same grid as agents). */
@@ -32,6 +33,7 @@ const readBody = (req: IncomingMessage) => new Promise<any>((done) => {
 /** Places + pretend jobs. Loaded by src/extensions.ts; edits no server, sim or html file. */
 export function register(ctx: Ctx) {
   const { town } = ctx;
+  ctx.chattyStatuses?.add(WORKING); // on-shift staff can still chat with visitors, using the job prompt
   const catalog = loadCatalog();
   const store = new EnabledStore(catalog.map((p) => p.id));
   const clock = new Clock(), greeted = new Map<string, number>(), shifts: Shifts = new Map();
