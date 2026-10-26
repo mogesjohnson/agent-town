@@ -13,10 +13,11 @@
   <span id="usage"></span>
 </header>
 <main>
-  <canvas id="town" width="800" height="500"></canvas>
+  <div id="stage"><canvas id="town" width="800" height="500"></canvas><div id="ext-overlay"></div></div>
   <aside>
     <h2>Lobby</h2>
     <ul id="lobby"></ul>
+    <div id="ext-panels"></div>
   </aside>
 </main>
 <section id="bottom">
@@ -31,5 +32,6 @@
 {"imports":{"three":"/vendor/three.module.js"}}
 </script>
 <script src="app.js"></script>
+<script type="module" src="ext-loader.js"></script>
 </body>
 </html>
