@@ -44,8 +44,11 @@ export interface Adapter {
   chat(req: ChatRequest): Promise<string>;
 }
 
+/** Built-in statuses. Extensions may set their own (e.g. "playing"); the sim
+ *  leaves an agent with a custom status in place until it is set back to "idle". */
 export type AgentStatus =
-  | "idle" | "walking" | "chatting" | "thinking" | "paused" | "out-of-turns" | "unavailable";
+  | "idle" | "walking" | "chatting" | "thinking" | "paused" | "out-of-turns" | "unavailable"
+  | (string & {});
 
 export const DEFAULT_CONFIG: Omit<TownConfig, "agents"> = {
   port: 4317,
