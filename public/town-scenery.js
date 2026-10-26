@@ -33,15 +33,23 @@ export function createScenery(root, mats) {
   group.name = "town-scenery";
   root.add(group);
   const items = new Map();
+  let disposed = false, version = -1;
   const waterBase = new THREE.MeshPhysicalMaterial({ color: "#659b9a", metalness: 0.3, roughness: 0.16, clearcoat: 1 });
   const trunk = new THREE.MeshStandardMaterial({ color: "#725d44", roughness: 0.9 });
   const leaf = new THREE.MeshStandardMaterial({ color: "#547a45", roughness: 0.85 });
   function drop(node) {
     node.removeFromParent();
+    const owned = new Set();
     node.traverse((child) => {
       child.geometry?.dispose();
       if (child.material?.isMeshPhysicalMaterial) child.material.dispose();
+      if (child.material?.userData.ownedScenery) owned.add(child.material);
     });
+    for (const material of owned) {
+      const index = mats.glow?.indexOf(material) ?? -1;
+      if (index >= 0) mats.glow.splice(index, 1);
+      material.dispose();
+    }
   }
   function build(item) {
     const node = new THREE.Group();
@@ -67,10 +75,21 @@ export function createScenery(root, mats) {
       body.position.y = 0.55; node.add(body);
       const roof = new THREE.Mesh(new THREE.ConeGeometry(0.72, 0.45, 4), mats.tiles);
       roof.position.y = 1.15; roof.rotation.y = Math.PI / 4; node.add(roof);
+      const door = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.55, 0.04), mats.tiles);
+      door.position.set(0, 0.375, 0.52); node.add(door);
+      const glass = new THREE.MeshStandardMaterial({ color: "#d6dfd1", emissive: "#ffc77d", emissiveIntensity: 0.1 });
+      glass.userData.ownedScenery = true; mats.glow?.push(glass);
+      for (const x of [-0.32, 0.32]) {
+        const window = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.3, 0.04), glass);
+        window.position.set(x, 0.7, 0.52); node.add(window);
+      }
     }
+    node.traverse((o) => { if (o.isMesh) { o.castShadow = !["path", "pond"].includes(item.kind); o.receiveShadow = true; } });
     return node;
   }
   function apply(map) {
+    if (disposed || (version >= 0 && (!Number.isFinite(map?.version) || map.version < version))) return;
+    if (Number.isFinite(map?.version)) version = map.version;
     const wanted = (map?.scenery ?? []).filter((item) => DRAWN.has(item.kind));
     const ids = new Set(wanted.map((item) => item.id));
     for (const [id, node] of items) if (!ids.has(id)) { drop(node); items.delete(id); }
@@ -85,6 +104,6 @@ export function createScenery(root, mats) {
   }
   return {
     apply,
-    dispose() { for (const node of items.values()) drop(node); items.clear(); group.removeFromParent(); waterBase.dispose(); trunk.dispose(); leaf.dispose(); },
+    dispose() { disposed = true; for (const node of items.values()) drop(node); items.clear(); group.removeFromParent(); waterBase.dispose(); trunk.dispose(); leaf.dispose(); },
   };
 }

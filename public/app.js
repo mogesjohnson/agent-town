@@ -16,10 +16,14 @@ let terrain = null;
 es.addEventListener("state", (e) => { state = JSON.parse(e.data); render(); });
 es.addEventListener("map:changed", () => loadTerrain());
 async function loadTerrain() {
+  try {
   const response = await fetch("/api/map");
   if (!response.ok) return;
-  terrain = await response.json();
+  const next = await response.json();
+  if (terrain && next.version < terrain.version) return;
+  terrain = next;
   if (!townView) render();
+  } catch { /* SSE reconnects; the next map event retries without breaking chat. */ }
 }
 loadTerrain();
 es.addEventListener("log", (e) => JSON.parse(e.data).forEach(onSay));
