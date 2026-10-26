@@ -8,11 +8,15 @@ import { LIMITS, MOODS } from "./schema.js";
 import { loadForEditor, PERSONALITIES_PATH, savePersonalities } from "./store.js";
 
 const PORT = Number(process.env.PERSONALITIES_PORT) || 4318;
-const UI = join(fileURLToPath(new URL(".", import.meta.url)), "..", "..", "src", "personalities", "ui");
+const ROOT = join(fileURLToPath(new URL(".", import.meta.url)), "..", "..");
+const UI = join(ROOT, "src", "personalities", "ui");
+const EXT = join(ROOT, "public", "extensions");
+const JS = "text/javascript; charset=utf-8";
 const FILES: Record<string, [string, string]> = {
-  "": ["index.html", "text/html; charset=utf-8"],
-  "editor.js": ["editor.js", "text/javascript; charset=utf-8"],
-  "editor.css": ["editor.css", "text/css; charset=utf-8"],
+  "": [join(UI, "index.html"), "text/html; charset=utf-8"],
+  "editor.css": [join(UI, "editor.css"), "text/css; charset=utf-8"],
+  "standalone.js": [join(UI, "standalone.js"), JS],
+  "personalities.js": [join(EXT, "personalities.js"), JS],
 };
 /** Paths the handler answers under a UI prefix such as "/" or "/personalities/". */
 export const UI_FILES = Object.keys(FILES);
@@ -45,7 +49,7 @@ export async function editorHandler(req: IncomingMessage, res: ServerResponse) {
     const agents = loadConfig().agents.map((a) => a.name);
     return send(res, 200, { agents, moods: MOODS, limits: LIMITS, data: loadForEditor() });
   }
-  if (url.pathname === "/api/personalities" && req.method === "PUT") {
+  if (url.pathname === "/api/personalities" && (req.method === "PUT" || req.method === "POST")) {
     // JSON content type forces a CORS preflight, which we never approve, so other sites cannot write.
     if (!String(req.headers["content-type"] ?? "").startsWith("application/json")) return send(res, 415, { ok: false, errors: ["JSON only"] });
     const raw = await readBody(req);
@@ -61,7 +65,7 @@ export async function editorHandler(req: IncomingMessage, res: ServerResponse) {
   const f = req.method === "GET" && Object.hasOwn(FILES, name) ? FILES[name] : undefined;
   if (!f) { res.writeHead(404, HEADERS); return res.end("not found"); }
   try {
-    const data = await readFile(join(UI, f[0]));
+    const data = await readFile(f[0]);
     res.writeHead(200, { ...HEADERS, "content-type": f[1] });
     res.end(data);
   } catch { res.writeHead(404, HEADERS); res.end("not found"); }

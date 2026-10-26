@@ -12,11 +12,13 @@ export const personalitiesPromptHook: PromptHook = (prompt, { agent }) => {
   return at === -1 ? `${prompt}\n${notes}` : `${prompt.slice(0, at)}\n${notes}${prompt.slice(at)}`;
 };
 
-export function register(ctx: { routes: Routes; promptHooks: PromptHook[] }) {
+/** Called by loadExtensions() with { town, clients, routes, config, on, promptHooks }; uses routes and promptHooks. */
+export function register(ctx: { routes: Routes; promptHooks: PromptHook[]; [k: string]: unknown }) {
   ctx.promptHooks.push(personalitiesPromptHook);
   const h: Handler = (req, res) => editorHandler(req, res);
-  // Editor page at /personalities/ on the town server, same API as the standalone editor.
+  // Full-page editor at /personalities/ plus the API the side-panel (public/extensions/personalities.js) uses.
   for (const f of UI_FILES) ctx.routes.add("GET", `/personalities/${f}`, h);
   ctx.routes.add("GET", "/api/personalities", h);
   ctx.routes.add("PUT", "/api/personalities", h);
+  ctx.routes.add("POST", "/api/personalities", h);
 }
