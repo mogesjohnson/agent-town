@@ -17,4 +17,5 @@ Plaza and other venues stay on the map overlay and use `userData.worldId` of
 the overlay. Lamps are lighting fixtures, not world records.
 
 The 2D fallback reads `/api/map` and `map:changed`, then draws those tiles under
-the landmark rectangles from the simulation.
+the landmark rectangles from the simulation. Cozy voxel keeps its ground and
+lamps, and draws houses, paths, trees and the pond from the same map overlay.
