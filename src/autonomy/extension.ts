@@ -9,6 +9,7 @@ interface Ctx {
   on(event: string, fn: (data: unknown) => void): unknown;
 }
 interface Intent { goal: Goal; until: number; arrived: boolean }
+interface Place { name: string; x: number; y: number; w: number; h: number; enabled: boolean; open: boolean; detached: boolean }
 
 /** Needs-driven agency uses no extra inference calls and never interprets speech as instructions. */
 export function register({ town, routes, on, promptHooks }: Ctx) {
@@ -33,7 +34,9 @@ export function register({ town, routes, on, promptHooks }: Ctx) {
       if (!a.available || !["idle", "walking"].includes(a.status)) continue;
       let intent = intents.get(a.cfg.name);
       if (!intent || intent.until <= tick) {
-        const places = LANDMARKS.map((p) => ({ name: p.name, x: p.x + Math.floor(p.w / 2), y: p.y + Math.floor(p.h / 2) }));
+        const current = town.state() as ReturnType<Town["state"]> & { places?: { list: Place[] } };
+        const locations = current.places ? current.places.list.filter((p) => p.enabled && p.open && !p.detached) : LANDMARKS;
+        const places = locations.map((p) => ({ name: p.name, x: p.x + Math.floor(p.w / 2), y: p.y + Math.floor(p.h / 2) }));
         const resident = (b: typeof a) => ({ ...b, name: b.cfg.name, personality: b.cfg.personality });
         const goal = chooseGoal(resident(a), moodOf(a.cfg.name).needs, places,
           town.agents.filter((b) => b !== a && b.available).map(resident), W, H);
