@@ -46,7 +46,8 @@ const DIST = fileURLToPath(new URL(".", import.meta.url));
 
 /** Load dist/<feature>/extension.js in alphabetical order and call register(ctx). */
 export async function loadExtensions(base: Record<string, unknown>) {
-  const ctx = { ...base, routes, promptHooks, on: (e: string, fn: (d: unknown) => void) => bus.on(e, fn) };
+  const chattyStatuses = (base.town as { chattyStatuses?: Set<string> } | undefined)?.chattyStatuses;
+  const ctx = { ...base, routes, promptHooks, chattyStatuses, on: (e: string, fn: (d: unknown) => void) => bus.on(e, fn) };
   const dirs = readdirSync(DIST, { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name).sort();
   for (const dir of dirs) {
     const file = join(DIST, dir, "extension.js");
