@@ -40,6 +40,21 @@ official `claude` CLI with tools disabled, using your own local Claude login.
   a cap is hit, or the JSON is invalid, a deterministic template paper is built from the events.
   (The built-in `mock` adapter only returns canned chatter, so the template is the fallback.)
 
+## Rumors and follow-ups
+
+- Rumors (no model calls): a `say` line that mentions a third agent starts a rumor about them. When
+  someone who heard it mentions that agent again, a hop is added with its own wording. The gossip
+  column lists the chain of tellers and how the text changed. State is kept in `rumors.json`.
+- Follow-ups: the last 3 headlines go into the digest, and past stories that name agents active
+  today become "Update: ..." stories (model and template alike).
+
+## Wall poster
+
+`newspaper.js` draws the front page on a 256x320 canvas, shown as a 2D overlay on the cafe wall.
+Clicking it opens the panel. A 3D renderer can use `window.agentTown.newspaper.getPosterCanvas()`
+as a texture, refresh it on the `agent-town:newspaper` window event, call `open()` on click and
+`hidePoster()` to drop the 2D overlay.
+
 ## Config
 
 Optional `newspaper` key in `town.config.json`. Every field has a default; shared config types are
@@ -57,7 +72,8 @@ Set `"provider": "mock"` to never call a model.
 
 ## Storage
 
-Issues are saved as `issue-0001.json` and `issue-0001.md` in `dataDir`. The default
+Issues are saved as `issue-0001.json` and `issue-0001.md` in `dataDir`, with `rumors.json` and
+`calls.json` (model calls per real day). The default
 `.runtime/newspaper` is already git-ignored, so generated papers are never committed.
 
 ## API
