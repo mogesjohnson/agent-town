@@ -74,3 +74,8 @@ aside { min-width: 0; }
 #stage > canvas { max-width: 100%; height: auto; }
 #stage > canvas[hidden] { display: none; }
 @media (max-width: 850px) { #stage > .town-stage { height: 460px; } }
+#token-panel { margin-top: 16px; padding: 12px; border: 1px solid #8a9f9c55; border-radius: 10px; }
+#token-panel h2 { margin-top: 0; }
+#token-summary, .token-agent { font-size: 12px; line-height: 1.6; }
+.token-agent { border-top: 1px solid #8a9f9c33; margin-top: 8px; padding-top: 8px; }
+.token-agent summary { cursor: pointer; }
