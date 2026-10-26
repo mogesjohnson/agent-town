@@ -67,3 +67,10 @@ aside { min-width: 0; }
 .town-toolbar label, .town-toolbar > span { background: #354b45df; padding: 6px 8px; border-radius: 5px; }
 .town-toolbar select { background: #f6efdc; color: #35483f; border: 0; border-radius: 3px; padding: 4px; }
 @media (max-width: 600px) { .town-toolbar > span { display: none; } }
+
+/* Extensions wrap the renderer in #stage; retain a nonzero viewport. */
+#stage { min-width: 0; align-self: start; }
+#stage > .town-stage { height: clamp(420px, 48vw, 680px); border-radius: 10px; }
+#stage > canvas { max-width: 100%; height: auto; }
+#stage > canvas[hidden] { display: none; }
+@media (max-width: 850px) { #stage > .town-stage { height: 460px; } }

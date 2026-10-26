@@ -35,7 +35,7 @@ export function createLighting(view, host) {
   view.scene.add(fireflies);
   let elapsed = 0, previous = performance.now();
   function animate(now, paused) {
-    if (!paused) elapsed += Math.min((now - previous) / 1000, 0.1);
+    if (!paused) elapsed += Math.max(0, Math.min((now - previous) / 1000, 0.1));
     previous = now;
     const phase = { noon: 0.15, dusk: 0.47, night: 0.72 }[select.value] ?? (elapsed / 240) % 1;
     const index = STOPS.findIndex((s) => s.t > phase);
