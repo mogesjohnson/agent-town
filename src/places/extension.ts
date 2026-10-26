@@ -1,7 +1,8 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Town } from "../sim.js";
 import { loadCatalog, type Place } from "./catalog.js";
-import { assignJobs, Clock, endShifts, free, isOpen, type Job, promptLines, type Shifts, workTick } from "./jobs.js";
+import { followAnchors } from "./anchors.js";
+import { assignJobs, Clock, endShifts, free, isOpen, type Job, promptLines, retarget, type Shifts, workTick } from "./jobs.js";
 import { EnabledStore } from "./store.js";
 
 type Handler = (req: IncomingMessage, res: ServerResponse, url: URL) => unknown;
@@ -47,7 +48,15 @@ export function register(ctx: Ctx) {
     endShifts(town, shifts, (name, place) => jobs.some((j) => j.agent === name && j.place === place));
     console.log(`[places] jobs: ${jobs.map((j) => `${j.agent}=${j.role}@${j.place}`).join(", ") || "none"}`);
   };
-  const views = (): PlaceView[] => catalog.map((p) => ({
+  // Called from state() too, so the broadcast right after a map edit already shows the new spot.
+  const follow = () => {
+    for (const id of followAnchors(catalog)) {
+      const p = catalog.find((c) => c.id === id)!;
+      console.log(`[places] ${id} follows ${p.anchor} to ${p.plot.x},${p.plot.y}`);
+      if (store.isEnabled(id)) retarget(town, jobs, p, clock.hour, shifts);
+    }
+  };
+  const views = (): PlaceView[] => (follow(), catalog).map((p) => ({
     id: p.id, name: p.name, type: p.type, sign: p.sign, color: p.color, anchor: p.anchor,
     ...p.plot, ...p.footprint, enabled: store.isEnabled(p.id), open: store.isEnabled(p.id) && isOpen(p, clock.hour),
     hours: p.hours, workers: jobs.filter((j) => j.place === p.id).map((j) => ({ agent: j.agent, role: j.title })),
@@ -59,6 +68,7 @@ export function register(ctx: Ctx) {
   ctx.on("tick", () => {
     clock.advance(town.paused);
     refreshJobs();
+    follow();
     if (!town.paused) workTick(town, jobs, enabled(), clock.hour, greeted, shifts);
   });
 

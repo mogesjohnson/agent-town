@@ -76,6 +76,21 @@ export function endShifts(town: Town, shifts: Shifts, stillOn: (agent: string, p
   }
 }
 
+const walkInto = (p: Place, w: Agent) => {
+  if (!inside(p, w.tx, w.ty)) { w.tx = p.plot.x + Math.floor(Math.random() * p.footprint.w); w.ty = p.plot.y + Math.floor(Math.random() * p.footprint.h); }
+};
+
+/** A place moved: on-duty staff standing or heading outside its new footprint walk to the new spot. */
+export function retarget(town: Town, jobs: Job[], p: Place, hour: number, shifts: Shifts) {
+  if (!isOpen(p, hour)) return;
+  for (const j of jobs) {
+    const w = j.place === p.id ? town.agents.find((a) => a.cfg.name === j.agent) : undefined;
+    if (!w || !free(w)) continue;
+    if (w.status === WORKING && shifts.get(j.agent) === p.id && !inside(p, w.x, w.y)) w.status = "idle"; // ours to undo
+    walkInto(p, w);
+  }
+}
+
 /** Walk on-duty workers to their place, mark them "working" there, and greet visitors (no model calls). */
 export function workTick(town: Town, jobs: Job[], places: Place[], hour: number, greeted: Map<string, number>, shifts: Shifts) {
   const now = Date.now();
@@ -86,7 +101,7 @@ export function workTick(town: Town, jobs: Job[], places: Place[], hour: number,
     if (!w || !p || !isOpen(p, hour) || !free(w)) continue;
     onDuty.add(`${job.agent}@${p.id}`);
     if (shifts.get(job.agent) !== p.id || w.status !== WORKING) {
-      if (!inside(p, w.tx, w.ty)) { w.tx = p.plot.x + Math.floor(Math.random() * p.footprint.w); w.ty = p.plot.y + Math.floor(Math.random() * p.footprint.h); }
+      walkInto(p, w);
       if (!inside(p, w.x, w.y)) continue;
       w.status = WORKING; w.tx = w.x; w.ty = w.y; shifts.set(job.agent, p.id); // the sim leaves custom statuses alone
     }
