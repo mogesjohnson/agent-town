@@ -12,7 +12,16 @@ const tabs = Object.assign(Object.create(null), { All: [] });
 const HISTORY_LIMIT = 200, RECENT_LIMIT = 2048, recentEvents = new Set();
 
 const es = new EventSource("/events");
+let terrain = null;
 es.addEventListener("state", (e) => { state = JSON.parse(e.data); render(); });
+es.addEventListener("map:changed", () => loadTerrain());
+async function loadTerrain() {
+  const response = await fetch("/api/map");
+  if (!response.ok) return;
+  terrain = await response.json();
+  if (!townView) render();
+}
+loadTerrain();
 es.addEventListener("log", (e) => JSON.parse(e.data).forEach(onSay));
 es.addEventListener("say", (e) => onSay(JSON.parse(e.data)));
 
@@ -47,6 +56,11 @@ function render() {
   if (townView) townView.update(state);
   else {
     ctx.clearRect(0, 0, cv.width, cv.height);
+    const tileColor = { road: "#d6c6a1", water: "#6bafb2", hill: "#8f8a5c", tree: "#4f7a45" };
+    terrain?.tiles?.forEach((row, y) => row.forEach((type, x) => {
+      if (!tileColor[type]) return;
+      ctx.fillStyle = tileColor[type]; ctx.fillRect(x * TILE, y * TILE, TILE, TILE);
+    }));
     for (const l of state.landmarks) {
       ctx.fillStyle = l.color; ctx.fillRect(l.x * TILE, l.y * TILE, l.w * TILE, l.h * TILE);
       ctx.fillStyle = "#333"; ctx.font = "12px sans-serif"; ctx.fillText(l.name, l.x * TILE + 4, l.y * TILE + 14);

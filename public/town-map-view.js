@@ -25,6 +25,8 @@ export function createMapView(view) {
   function build(b) {
     const group = new THREE.Group(), label = document.createElement("span");
     group.name = `map-building:${b.id}`;
+    group.userData.worldId = `building:${b.id}`;
+    group.userData.kind = b.type;
     const w = b.w * 40 / width, d = b.h * 30 / height;
     if (["plaza", "park"].includes(b.type)) {
       part(group, b.type === "park" ? "#8cad70" : "#c7ba9d", 0, 0.14, 0, w, 0.1, d);
@@ -48,15 +50,20 @@ export function createMapView(view) {
     if (disposed || !map?.tiles || !Array.isArray(map.buildings)) return;
     if (Number.isFinite(map.version) && map.version < version) return;
     width = map.width; height = map.height; version = map.version ?? version;
+    const scenic = typeof view.world?.applyScenery === "function";
+    if (scenic) view.world.applyScenery(map);
+    const covered = new Set(scenic ? (map.scenery ?? []).filter((item) => ["path", "tree", "pond"].includes(item.kind)).map((item) => `${item.x},${item.y}`) : []);
+    const houseIds = new Set(scenic ? (map.scenery ?? []).filter((item) => item.kind === "house").map((item) => item.buildingId) : []);
     // Shared geometry/materials survive rebuilds; InstancedMesh owns its instance data.
     for (const tile of [...tiles.children]) { tile.removeFromParent(); tile.dispose?.(); }
     const palette = { road: "#bdb298", water: "#6aabb2", hill: "#99946b", tree: "#71945a" };
     for (const [type, color] of Object.entries(palette)) {
       const cells = [];
-      map.tiles.forEach((row, y) => row.forEach((t, x) => { if (t === type) cells.push({ x, y }); }));
+      map.tiles.forEach((row, y) => row.forEach((t, x) => { if (t === type && !covered.has(`${x},${y}`)) cells.push({ x, y }); }));
       if (!cells.length) continue;
       const batch = new THREE.InstancedMesh(cube, material(color), cells.length);
-      batch.name = `map-tiles:${type}`; batch.receiveShadow = true; tiles.add(batch);
+      batch.name = `map-tiles:${type}`; batch.userData.worldId = `tiles:${type}`; batch.receiveShadow = true; tiles.add(batch);
+      if (type === "water") batch.userData.atmosphere = "water";
       const matrix = new THREE.Matrix4();
       cells.forEach(({ x, y }, index) => {
         matrix.makeScale(40 / width, type === "hill" ? 0.7 : 0.08, 30 / height);
@@ -68,7 +75,8 @@ export function createMapView(view) {
         [cube, "#725d44", 0.56, [0.112, 1.12, 0.112]], [sphere, "#547a45", 1.26, [0.56, 0.77, 0.56]],
       ]) {
         const trees = new THREE.InstancedMesh(geometry, material(color), cells.length);
-        trees.name = "painted-tree"; trees.castShadow = trees.receiveShadow = true; tiles.add(trees);
+        trees.name = "painted-tree"; trees.userData.atmosphere = "vegetation"; trees.userData.worldId = "tiles:tree";
+        trees.castShadow = trees.receiveShadow = true; tiles.add(trees);
         cells.forEach(({ x, y }, index) => {
           matrix.makeScale(...scale);
           matrix.setPosition((x + 0.5) * 40 / width - 20, h, (y + 0.5) * 30 / height - 15);
@@ -79,10 +87,22 @@ export function createMapView(view) {
     }
     const present = new Set(map.buildings.map((b) => b.id));
     for (const [id, item] of buildings) if (!present.has(id)) {
-      item.group.removeFromParent(); item.label.remove(); buildings.delete(id);
+      item.group?.removeFromParent(); item.label.remove(); buildings.delete(id);
     }
     for (const b of map.buildings) {
+      if (houseIds.has(b.id)) {
+        let item = buildings.get(b.id);
+        if (item?.group) { item.group.removeFromParent(); item.group = null; }
+        if (!item) {
+          const label = document.createElement("span");
+          label.className = "town-sign"; label.dataset.mapBuilding = b.id; view.overlay.append(label);
+          item = { group: null, label, position: new THREE.Vector3() }; buildings.set(b.id, item);
+        }
+        item.position.set((b.x + b.w / 2) * 40 / width - 20, 2.2, (b.y + b.h / 2) * 30 / height - 15);
+        item.label.textContent = b.name ?? b.id; continue;
+      }
       let item = buildings.get(b.id);
+      if (item && !item.group) { item.label.remove(); buildings.delete(b.id); item = null; }
       if (item && item.shape !== `${b.type}:${b.w}:${b.h}`) {
         item.group.removeFromParent(); item.label.remove(); buildings.delete(b.id); item = null;
       }
