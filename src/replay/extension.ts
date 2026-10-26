@@ -4,15 +4,12 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import type { IncomingMessage, ServerResponse } from "node:http";
+import type { ServerResponse } from "node:http";
+import type { Town } from "../sim.js";
+import type { Handler, Routes } from "../extensions.js";
 import { Recorder } from "./recorder.js";
 
-type Handler = (req: IncomingMessage, res: ServerResponse, url: URL) => unknown;
-interface Ctx {
-  town: { state(): unknown };
-  routes: { add(method: string, path: string, handler: Handler): void };
-  on(event: string, fn: (data: unknown) => void): void;
-}
+type Ctx = { town: Town; routes: Routes; on(event: string, fn: (data: unknown) => void): void };
 
 const SRC = fileURLToPath(new URL("../../src/replay/", import.meta.url));
 const FILES: Record<string, string> = {
