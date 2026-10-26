@@ -39,6 +39,8 @@ export const shapes = {
     items: z.array(text(60)).min(1).max(8).optional(), topics: z.array(text(60)).min(1).max(8).optional(),
   },
   "place.remove": { id: placeId.describe("Id of a custom place (built-ins cannot be removed; close them with toggle_place).") },
+  "place.move": { id: placeId.describe("Custom place id from get_world or get_places; move built-ins using their anchor building."),
+    x: z.number().int().min(0).max(39), y: z.number().int().min(0).max(24) },
   "season.upsert": {
     id: z.string().regex(/^[a-z0-9][a-z0-9-]{0,47}$/), name: line(40),
     windows: z.array(z.object({ from: monthDay, to: monthDay })).min(1).max(4),

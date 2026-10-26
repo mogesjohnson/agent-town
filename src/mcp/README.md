@@ -52,6 +52,12 @@ and isolated mock-town checks of resources, tools, preview, add/move/remove and 
 The test uses a disposable data directory and port 4329 (`MCP_CHECK_PORT` overrides it),
 never the user's running town or real provider adapters.
 
+`move_place` relocates a custom venue by id and top-left x/y. Its preview uses the same
+place validation as apply, including map bounds and other place/building footprints.
+Open/closed state, identity, menu and jobs are preserved; the change is logged and can
+be reverted with `undo_last_change`. Built-in venues move through their anchor building
+with `move_building`. Relocation rejects conflicts without deleting the original venue.
+
 | Resource | Tool | Source |
 | --- | --- | --- |
 | `town://town` | `get_town` | `GET /api/state`: size, landmarks, paused, usage, agents, last 50 lines |
