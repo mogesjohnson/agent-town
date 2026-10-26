@@ -16,7 +16,7 @@ aside { flex: 1; background: #2b2e36; border-radius: 6px; padding: 6px; min-widt
 #form { display: flex; gap: 4px; } #input { flex: 1; }
 
 .town-stage { position: relative; overflow: hidden; background: #bfd5ce; }
-.town-stage canvas { display: block; width: 100%; height: 100%; image-rendering: pixelated; touch-action: none; }
+.town-stage canvas { display: block; width: 100%; height: 100%; image-rendering: auto; touch-action: none; }
 .town-overlays { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 .town-sign { position: absolute; transform: translate(-50%, -100%); white-space: nowrap;
   color: #fff9df; background: #4a5146e6; border: 1px solid #d4c395; border-radius: 4px;
@@ -52,12 +52,6 @@ aside { min-width: 0; }
 #pause, #form button { background: #e4c78e; color: #344c40; border: 0; border-radius: 4px; padding: 7px 12px; cursor: pointer; }
 #input { min-width: 0; background: #f6efdc; color: #35483f; border: 0; border-radius: 4px; padding: 8px; }
 #usage { font-size: 12px; opacity: .8; }
-.style-panel { padding: 10px 16px; background: #243b35; }
-.style-panel summary { cursor: pointer; font-weight: 600; }
-.style-panel button { margin: 8px 8px 0 0; padding: 9px 12px; cursor: pointer;
-  border: 1px solid #718a7b; border-radius: 6px; color: #eee; background: #304a43; }
-.style-panel button[aria-pressed="true"] { border-color: #e4c78e; color: #ffe3ab; }
-.town-stage[data-style="natural"] canvas { image-rendering: auto; }
 .atmosphere-controls { position: absolute; top: 56px; right: 12px; padding: 6px 8px;
   border-radius: 5px; background: #20372be6; color: #fff; font: 12px system-ui; }
 .atmosphere-controls select { padding: 4px; border: 0; border-radius: 3px; }
