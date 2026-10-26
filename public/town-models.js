@@ -22,7 +22,9 @@ export function attachAnimatedResident(parent, color) {
       });
       object.material = Array.isArray(original) ? materials : materials[0];
     });
-    const bounds = new THREE.Box3().setFromObject(model);
+    model.updateMatrixWorld(true);
+    model.traverse((object) => { if (object.isSkinnedMesh) object.skeleton.update(); });
+    const bounds = new THREE.Box3().setFromObject(model, true);
     const height = bounds.max.y - bounds.min.y;
     model.scale.setScalar(2 / height);
     model.position.y = -bounds.min.y * 2 / height;
