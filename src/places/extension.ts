@@ -37,10 +37,11 @@ export function register(ctx: Ctx) {
   let jobs: Job[] = [], signature = "";
   const enabled = () => catalog.filter((p) => store.isEnabled(p.id));
   const refreshJobs = () => {
-    const sig = town.agents.map((a) => a.cfg.name).join(",") + "|" + store.enabledIds().join(",");
+    const staff = town.agents.filter((a) => a.available); // unavailable agents never move
+    const sig = staff.map((a) => a.cfg.name).join(",") + "|" + store.enabledIds().join(",");
     if (sig === signature) return;
     signature = sig;
-    jobs = assignJobs(town.agents.map((a) => ({ name: a.cfg.name, personality: a.cfg.personality })), enabled());
+    jobs = assignJobs(staff.map((a) => ({ name: a.cfg.name, personality: a.cfg.personality })), enabled());
     console.log(`[places] jobs: ${jobs.map((j) => `${j.agent}=${j.role}@${j.place}`).join(", ") || "none"}`);
   };
   const views = (): PlaceView[] => catalog.map((p) => ({
