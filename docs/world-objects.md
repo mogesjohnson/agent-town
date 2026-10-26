@@ -19,3 +19,9 @@ the overlay. Lamps are lighting fixtures, not world records.
 The 2D fallback reads `/api/map` and `map:changed`, then draws those tiles under
 the landmark rectangles from the simulation. Cozy voxel keeps its ground and
 lamps, and draws houses, paths, trees and the pond from the same map overlay.
+
+Map seeding reserves valid saved custom venues before creating cottages, trees or pond
+cells. Importing older map exports still advances the live renderer revision. Undo
+revalidates current venue footprints and refuses overlaps without changing the map.
+Residents route around water and tree tiles before stepping; blocked destinations are
+abandoned. Removing every building leaves random wandering available.
