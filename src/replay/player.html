@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>agent-town replay</title>
+<style>
+  body { margin: 0; font: 14px system-ui, sans-serif; background: #1f2421; color: #eee; }
+  header { display: flex; gap: 10px; align-items: center; padding: 8px 12px; background: #2b322e; flex-wrap: wrap; }
+  main { display: flex; gap: 12px; padding: 12px; }
+  #stage { position: relative; flex: 1; }
+  #view canvas { width: 100%; height: auto; display: block; border-radius: 6px; }
+  #caption { position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%); max-width: 86%;
+    background: rgba(17,17,17,.88); color: #fff; padding: 8px 16px; border-radius: 999px; font-size: 20px; text-align: center; }
+  #caption:empty { display: none; }
+  #card { position: absolute; inset: 0; display: none; place-content: center; text-align: center; background: #264653; border-radius: 6px; }
+  #card h1 { font-size: 46px; margin: 0 0 10px; } #card p { font-size: 22px; opacity: .85; margin: 0; }
+  #timeline { position: relative; padding: 0 12px 4px; } #seek { width: 100%; }
+  #marks { position: relative; height: 12px; }
+  #marks b { position: absolute; top: 0; width: 8px; height: 10px; margin-left: -4px; border-radius: 2px; cursor: pointer; }
+  #side { width: 300px; font-size: 13px; } #log div { padding: 3px 0; border-bottom: 1px solid #333; }
+  body.clip header, body.clip #side, body.clip #timeline { display: none; }
+  body.clip main { padding: 0; } body.clip #view canvas, body.clip #card { border-radius: 0; }
+</style>
+</head>
+<body>
+<header>
+  <strong>agent-town replay</strong>
+  <input type="file" id="file" accept=".ndjson,.json,.jsonl">
+  <button id="play">Play</button>
+  <label>speed <select id="speed"><option>0.5</option><option selected>1</option><option>2</option><option>4</option><option>8</option><option>16</option><option>32</option></select></label>
+  <span id="clock">drop a replay file here</span>
+</header>
+<main>
+  <div id="stage"><div id="view"></div><div id="caption"></div><div id="card"><h1></h1><p></p></div></div>
+  <aside id="side"><h3>Highlights</h3><div id="hl"></div><h3>Chat</h3><div id="log"></div></aside>
+</main>
+<div id="timeline"><div id="marks"></div><input type="range" id="seek" min="0" max="0" value="0"></div>
+<script src="view.js"></script>
+<script src="highlights.js"></script>
+<script src="player.js"></script>
+</body>
+</html>
