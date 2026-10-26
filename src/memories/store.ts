@@ -4,7 +4,8 @@ import { dirname } from "node:path";
 import { agentName, emptyBook, sanitize, type Book, type Favorite, type Note, type NoteKind, type Relationship, type ResidentMemory, type Source } from "./model.js";
 
 export const MEMORY_PATH = ".runtime/memories.json";
-const MAX_BYTES = 64_000;
+// Accommodates all 32 bounded residents, including four-byte Unicode text.
+const MAX_BYTES = 1_000_000;
 let file = MEMORY_PATH;
 let book = emptyBook();
 let loaded = false;
@@ -82,17 +83,20 @@ function normalize(input: unknown): Book {
   next.town = next.town.slice(-8);
   if (!src.residents || typeof src.residents !== "object" || Array.isArray(src.residents)) return next;
   for (const [name, value] of Object.entries(src.residents as Record<string, unknown>)) {
+    if (Object.keys(next.residents).length >= 32) break;
     const key = agentName(name);
     if (!key || !value || typeof value !== "object" || Array.isArray(value)) continue;
     const raw = value as Partial<ResidentMemory>;
     const mem: ResidentMemory = { relationships: [], favorites: [], notes: [] };
     for (const item of Array.isArray(raw.relationships) ? raw.relationships : []) {
+      if (!item || typeof item !== "object") continue;
       const rel = item as Partial<Relationship>;
       const other = typeof rel.other === "string" ? agentName(rel.other) : undefined;
       if (!other || mem.relationships.some((r) => r.other === other)) continue;
       mem.relationships.push({ other, meetings: num(rel.meetings, 10_000), lastAt: num(rel.lastAt, 10_000_000_000_000) });
     }
     for (const item of Array.isArray(raw.favorites) ? raw.favorites : []) {
+      if (!item || typeof item !== "object") continue;
       const fav = item as Partial<Favorite>;
       const place = sanitize(typeof fav.place === "string" ? fav.place : "");
       if (!place || mem.favorites.some((f) => f.place === place)) continue;
@@ -105,6 +109,8 @@ function normalize(input: unknown): Book {
     mem.relationships = mem.relationships.slice(-16);
     mem.favorites = mem.favorites.slice(-8);
     mem.notes = mem.notes.slice(-12);
+    const speech = new Set(mem.notes.filter((n) => n.kind === "speech").slice(-4));
+    mem.notes = mem.notes.filter((n) => n.kind !== "speech" || speech.has(n));
     next.residents[key] = mem;
   }
   return next;
