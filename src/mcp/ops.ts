@@ -142,5 +142,12 @@ export function makeOps(town: Town) {
   }
 
   const activeHint = () => { const ev = custom && readOverlay<SeasonEvent>("seasons")[custom]; return ev ? `Town event: ${ev.name}. ${ev.topicHint}` : ""; };
-  return { apply, undo, applyAgent, activeHint };
+  // One shared queue for all MCP clients: selection, mutation and log append stay together.
+  let pending = Promise.resolve();
+  const serial = <A extends unknown[], R>(fn: (...args: A) => Promise<R>) => (...args: A) => {
+    const result = pending.then(() => fn(...args));
+    pending = result.then(() => undefined, () => undefined); // an invalid request cannot poison the queue
+    return result;
+  };
+  return { apply: serial(apply), undo: serial(undo), applyAgent, activeHint };
 }

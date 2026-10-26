@@ -93,7 +93,10 @@ export function placeOps(self: Self): Record<string, Run> {
       }
       if (a.id && (await places()).some((p) => p.id === a.id)) throw new OpError(`id ${a.id} is taken`, 409);
       const found = target && { target, candidates: spots };
-      if (dry) return { before: null, after: { ...args, ...spots[0], near: found, note: "fit and overlap are checked when applied" }, revert: { op: "place.remove", args: { id: a.id } } };
+      if (dry) {
+        const { place } = await self("/api/places/preview", { ...args, ...spots[0] });
+        return { before: null, after: { place, near: found }, revert: { op: "place.remove", args: { id: place.id } } };
+      }
       // Another writer can take a spot between the search and the POST: on a 409 overlap, search again and try the next spot.
       const attempts: (Spot & { result: string })[] = [];
       for (let s: Spot | undefined = spots[0]; s && attempts.length < TRIES; ) {
