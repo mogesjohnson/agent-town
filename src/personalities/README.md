@@ -49,5 +49,8 @@ character calls itself in conversation; the lobby still shows the config name.
 
 - `schema.ts`: types, limits, `validatePersonalities()`.
 - `store.ts`: load (cached by mtime) and atomic save.
-- `prompt.ts`: `personalityLines(agentName)` used by the hook in `src/sim.ts`.
-- `editor-server.ts`: standalone editor server. `ui/`: the editor page.
+- `prompt.ts`: `personalityLines(agentName)`, the sanitized prompt notes.
+- `editor-server.ts`: editor request handler, plus standalone mode when run directly. `ui/`: the editor page.
+- `extension.ts`: `register(ctx)` for the shared loader in `src/extensions.ts`. It pushes a prompt hook
+  and adds routes so the town server also serves the editor at `/personalities/`. It takes effect once
+  `server.ts` and the sim call `loadExtensions()` and run `promptHooks`.
