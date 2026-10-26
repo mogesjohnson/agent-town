@@ -52,7 +52,7 @@ export function validatePlace(p: any): string[] {
 }
 
 type Rect = { x: number; y: number; w: number; h: number };
-const overlaps = (a: Rect, b: Rect) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+export const overlaps = (a: Rect, b: Rect) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
 export const rectOf = (p: Place): Rect => ({ ...p.plot, ...p.footprint });
 
 /** Valid places, sorted by id. Bad files, duplicate ids and overlapping plots are skipped with a log line. */
