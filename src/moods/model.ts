@@ -13,21 +13,21 @@ export type NeedMood = "tired" | "hungry" | "lonely" | "sad";
 export const DEFAULT_BASELINE: BaselineMood = "calm";
 
 export const MOOD_CONFIG = {
-  /** In-game minutes that pass per sim tick (one tick is about 400 ms of real time). */
-  gameMinutesPerTick: 1,
+  /** In-game minutes that pass per sim tick (one tick is 400 ms real, so 1 game hour is about 96 s). */
+  gameMinutesPerTick: 0.25,
   /** Change per in-game minute. Negative drains. */
-  rates: { hunger: -0.06, energy: -0.05, social: -0.04 },
+  rates: { hunger: -0.2, energy: -0.16, social: -0.16 },
   /** Recovery per in-game minute while at the matching landmark. */
-  eatRate: 1.5, restRate: 1.2,
+  eatRate: 5, restRate: 4,
   eatAt: "Cafe", restAt: "Park",
   /** Event boosts. */
   convoSocial: 20, convoHappiness: 4, saySocial: 2,
   /** A need below this drives the mood. */
   lowThreshold: 25,
   /** Happiness lost per in-game minute for each need (other than happiness) below the threshold. */
-  lowNeedHappinessPenalty: 0.08,
+  lowNeedHappinessPenalty: 0.3,
   /** Fraction of the gap to the resting value closed per in-game minute. */
-  happinessDrift: 0.01,
+  happinessDrift: 0.04,
   start: { hunger: 80, energy: 90, social: 60 },
   defaultOverrideMinutes: 30,
   maxOverrideMinutes: 24 * 60,
