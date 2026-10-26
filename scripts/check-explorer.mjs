@@ -32,10 +32,10 @@ try {
   assert.equal(await position.textContent(), typed, "typing cannot move visitor");
   await page.getByLabel("Camera view").selectOption("overview");
   assert.equal(await stage.count(), 0, "overview changes camera mode");
-  await page.locator(".style-panel summary").click();
-  await page.getByRole("button", { name: /Cozy voxel/ }).click();
-  await page.locator('.town-stage[data-style="voxel"]').waitFor();
-  assert.equal(await page.getByLabel("Camera view").count(), 0, "original voxel camera preserved");
+  assert.equal(await page.locator(".style-panel").count(), 0, "retired Styles selector is absent");
+  await page.goto(`${process.env.TOWN_URL || "http://localhost:4317"}/?style=voxel&renderer=2d`);
+  await page.locator('.town-stage[data-style="natural"][data-camera="visitor"]').waitFor();
+  assert.equal(await page.getByLabel("Camera view").count(), 1, "retired flags retain perspective visitor controls");
   assert.deepEqual(errors, []);
-  console.log("PASS: third-person movement, input focus, overview and preserved voxel style");
+  console.log("PASS: third-person movement, input focus, overview, retired flags ignored and no Styles selector");
 } finally { await browser.close(); }

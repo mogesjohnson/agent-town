@@ -40,13 +40,15 @@ try {
     await route.fulfill({ contentType: "application/json", body: JSON.stringify({ paused: state.paused }) });
     await page.evaluate((s) => window.emitTown("state", s), state);
   });
-  await page.goto(`${base}/?style=voxel&time=noon`);
+  await page.goto(`${base}/?style=voxel&renderer=2d&time=noon&camera=overview`);
   await page.locator('.town-stage[data-time="noon"]').waitFor();
   await page.waitForFunction(() => document.querySelectorAll(".agent-name").length === 5);
   assert.equal(await page.locator("#town").isVisible(), false);
   assert.equal(await page.locator("#lobby li").count(), 5);
   const canvasSize = await page.locator(".town-stage canvas").evaluate((c) => [c.width, c.clientWidth]);
-  assert.ok(canvasSize[0] < canvasSize[1], "render below CSS resolution");
+  assert.ok(canvasSize[0] >= canvasSize[1], "natural view renders at viewport resolution");
+  assert.equal(await page.locator('.town-stage[data-style="natural"]').count(), 1, "retired URL flags cannot restore old styles");
+  assert.equal(await page.locator(".style-panel").count(), 0, "no Styles selector");
   await page.locator('#lobby li[data-name="Codex"]').click();
   await page.locator("#input").fill("Hello neighbor!");
   await page.locator("#form button").click();
@@ -80,22 +82,22 @@ try {
   assert.equal(await page.locator(".town-stage").count(), 1, "cached page retains view");
   await page.setViewportSize({ width: 720, height: 900 });
   await page.waitForTimeout(100);
-  assert.ok(await page.locator(".town-stage canvas").evaluate((c) => c.width > 0 && c.width < 720));
+  assert.ok(await page.locator(".town-stage canvas").evaluate((c) => c.width >= c.clientWidth && c.clientWidth > 0 && c.clientWidth < 720));
   await page.locator(".town-stage canvas").evaluate((c) =>
     c.dispatchEvent(new Event("webglcontextlost", { cancelable: true })));
   assert.equal(await page.locator("#town").isVisible(), true, "context loss falls back");
   assert.equal(await page.locator(".town-stage").count(), 0);
   await page.goto(`${base}/?renderer=2d`);
-  await page.waitForTimeout(200);
-  assert.equal(await page.locator("#town").isVisible(), true);
-  assert.equal(await page.locator(".town-stage").count(), 0);
+  await page.locator('.town-stage[data-style="natural"]').waitFor();
+  assert.equal(await page.locator("#town").isVisible(), false, "retired renderer flag is ignored");
+  assert.equal(await page.getByLabel("Camera view").count(), 1);
   await page.route("**/vendor/three.module.js", (route) => route.abort());
-  await page.goto(`${base}/?style=voxel`);
+  await page.goto(`${base}/`);
   await page.waitForTimeout(500);
   assert.equal(await page.locator("#town").isVisible(), true, "missing module falls back");
   assert.equal(await page.locator(".town-stage").count(), 0);
   assert.deepEqual(errors, []);
-  console.log("pass: 3D/SSE, tabs, chat, typewriter, thinking, bubble cap, text safety, pause, lighting, cached page, resize, 2D/context/module fallback");
+  console.log("pass: natural 3D/SSE, retired flags ignored, no Styles, chat, bubbles, pause, lighting, resize, technical context/module fallback");
 } finally {
   await browser.close();
 }
