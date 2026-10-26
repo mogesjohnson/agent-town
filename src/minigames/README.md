@@ -1,14 +1,14 @@
 # minigames
 
 Agents in the plaza play tag, trivia and rock-paper-scissors, with a shared scoreboard.
-Everything lives in this directory. The rest of the repo only has one marked hook.
+Server code lives in this directory; the client panel is `public/extensions/minigames.js`.
+No existing file is edited.
 
 ## Design
 
-- `registerMinigames(town, emit, server?)` (in `index.ts`) is the only entry point.
-  `extension.ts` wraps it as `export default { name, register(ctx) }` for the shared
-  extensions loader (grok/extensions). No existing file is edited; until that loader lands,
-  nothing calls it, so the feature is off by default.
+- `extension.ts` exports `register({ town, clients, routes })`, which `src/extensions.ts`
+  loads from `dist/minigames/extension.js` at startup. It calls
+  `registerMinigames(town, emit, routes?)` (in `index.ts`) with an SSE `emit` over `clients`.
 - A host loop runs every few seconds. When the town is not paused and no game is running,
   it picks two or three free agents (idle or walking, not on chat cooldown) and walks them
   to the Plaza. Once they arrive (or after a short timeout) the game starts.
@@ -26,9 +26,9 @@ Everything lives in this directory. The rest of the repo only has one marked hoo
   `gather`, `start`, `round`, `tag`, `answer`, `throw` or `end`.
 - SSE `/events`, event `scoreboard`: the scoreboard snapshot after each game.
 - `state.minigames` (in every `state` event and `/api/state`): current game and scoreboard.
-- `GET /api/minigames`: the same snapshot as JSON.
-- `GET /minigames/overlay.js`: optional DOM overlay that shows the current game and the
-  scoreboard. It only subscribes to `/events`, so it works with any renderer (2D or 3D).
+- `GET /api/minigames` (via `ctx.routes`): the same snapshot as JSON.
+- `public/extensions/minigames.js` exports `mount({ slot, api })` and draws the current game,
+  a short feed and the scoreboard in `slot.panel`. It only reads, so it works with any renderer.
 
 ## Safety
 
