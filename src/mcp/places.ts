@@ -72,6 +72,13 @@ export function placeOps(self: Self): Record<string, Run> {
   const body = ({ id, name, type, x, y, w, h, hours, vibe, items, topics }: Place): Body => ({ id, name, type, x, y, w, h, hours, vibe, items, topics });
 
   return {
+    "place.move": async (a: Args<"place.move">, dry) => {
+      const before = (await places()).find((p) => p.id === a.id);
+      if (!before) throw new OpError(`unknown place "${a.id}"`, 404);
+      const result = await self(`/api/places/${encodeURIComponent(a.id)}/move`, { x: a.x, y: a.y, dryRun: dry });
+      return { before, after: result.place,
+        revert: { op: "place.move", args: { id: a.id, x: before.x, y: before.y } } };
+    },
     "place.add": async (a: Args<"place.add">, dry) => {
       const list = await types();
       if (!list.some((t) => t.type === a.type)) throw new OpError(`unknown place type ${a.type}; types: ${list.map((t) => t.type).join(", ")}`);
