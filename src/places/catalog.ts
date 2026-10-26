@@ -12,6 +12,8 @@ export interface Place {
   anchor?: string;
   sign: string; color: string; hours: { open: number; close: number };
   vibe: string; items: string[]; topics: string[]; roles: Role[];
+  /** Created over POST /api/places and saved in .runtime/places.json; only these can be deleted. */
+  custom?: boolean;
 }
 
 /** JSON lives in src/ (tsc does not copy it); resolve from dist/places or src/places. */
