@@ -55,7 +55,12 @@ try {
     return result;
   });
   assert.equal(shader, true, "water shader receives animated ripple uniform");
-  await page.evaluate(() => { window.fixture.atmosphere.dispose(); window.fixture.lighting.dispose(); window.fixture.view.dispose(); });
+  const restored = await page.evaluate(() => {
+    window.fixture.atmosphere.dispose();
+    const range = [window.fixture.view.scene.fog.near, window.fixture.view.scene.fog.far];
+    window.fixture.lighting.dispose(); window.fixture.view.dispose(); return range;
+  });
+  assert.deepEqual(restored, [65, 125]);
   assert.equal(await page.getByLabel("Town weather").count(), 0);
   assert.deepEqual(errors, []);
   console.log("PASS: weather, season events, water shader, pause, reduced motion, object lifecycle and disposal");

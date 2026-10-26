@@ -23,6 +23,8 @@ export function createAtmosphere(view, host) {
   panel.append(select); host.append(panel);
   const reduced = matchMedia("(prefers-reduced-motion: reduce)");
   const trees = new Map(), water = new Map(), time = { value: 0 };
+  const weatherTint = new THREE.Color("#7d909c");
+  const fogRange = [view.scene.fog?.near ?? 65, view.scene.fog?.far ?? 125];
   let season = globalThis.townSeason || {}, previous = 0, elapsed = 0, scanAt = -1;
   let weather = "clear";
   const onSeason = (event) => { season = event.detail || {}; };
@@ -79,17 +81,18 @@ export function createAtmosphere(view, host) {
     }
     geometry.attributes.position.needsUpdate = snowGeometry.attributes.position.needsUpdate = true;
     if (view.scene.fog) {
-      view.scene.fog.near = weather === "fog" ? 6 : wet ? 24 : 65;
-      view.scene.fog.far = weather === "fog" ? 40 : wet ? 85 : 125;
+      view.scene.fog.near = weather === "fog" ? 6 : wet ? 24 : fogRange[0];
+      view.scene.fog.far = weather === "fog" ? 40 : wet ? 85 : fogRange[1];
     }
     if (wet || weather === "fog") {
-      view.scene.background.lerp(new THREE.Color("#7d909c"), weather === "storm" ? 0.45 : 0.2);
+      view.scene.background.lerp(weatherTint, weather === "storm" ? 0.45 : 0.2);
       view.scene.fog?.color.copy(view.scene.background);
       view.sun.intensity *= weather === "storm" ? 0.45 : 0.7;
     }
   }
   return { animate, get weather() { return weather; }, dispose() {
     removeEventListener("town:season", onSeason); panel.remove();
+    if (view.scene.fog) [view.scene.fog.near, view.scene.fog.far] = fogRange;
     for (const [tree, base] of trees) tree.rotation.z = base;
     for (const [material, entry] of water) { material.onBeforeCompile = entry.original; material.needsUpdate = true; }
     group.removeFromParent(); geometry.dispose(); snowGeometry.dispose(); drops.material.dispose(); flakes.material.dispose();
