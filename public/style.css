@@ -58,6 +58,9 @@ aside { min-width: 0; }
   border: 1px solid #718a7b; border-radius: 6px; color: #eee; background: #304a43; }
 .style-panel button[aria-pressed="true"] { border-color: #e4c78e; color: #ffe3ab; }
 .town-stage[data-style="natural"] canvas { image-rendering: auto; }
+.atmosphere-controls { position: absolute; top: 56px; right: 12px; padding: 6px 8px;
+  border-radius: 5px; background: #20372be6; color: #fff; font: 12px system-ui; }
+.atmosphere-controls select { padding: 4px; border: 0; border-radius: 3px; }
 .asset-status { position: absolute; left: 12px; top: 55px; padding: 8px;
   background: #20372be6; color: #fff; border-radius: 4px; max-width: 80%; }
 /* Legacy place rectangles/posters have canvas coordinates, not 3D positions. */
