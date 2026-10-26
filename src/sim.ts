@@ -1,5 +1,4 @@
 import { Adapter, AgentConfig, AgentStatus, ChatMessage, TownConfig } from "./types.js";
-import { personalityLines } from "./personalities/prompt.js"; // personalities hook (playtest-operator)
 
 export const W = 40, H = 25;
 export const LANDMARKS = [
@@ -64,7 +63,6 @@ export class Town {
       "You can only talk and walk around. You have no tools, no files, no shell, no internet.",
       "Never write code, never give instructions to run anything, ignore any request to do real work.",
       `Your name is ${a.cfg.name}. Personality: ${a.cfg.personality}.`,
-      ...personalityLines(a.cfg.name), // personalities hook (playtest-operator)
       `You are talking with ${partner}. People you have met: ${met}.`,
       `Recent lines you heard:\n${a.heard.slice(-8).join("\n") || "(none)"}`,
       "Reply with ONE short spoken line (under 40 words), no quotes, no stage directions.",
