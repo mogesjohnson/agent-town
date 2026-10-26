@@ -12,6 +12,8 @@ export interface Place {
   anchor?: string;
   sign: string; color: string; hours: { open: number; close: number };
   vibe: string; items: string[]; topics: string[]; roles: Role[];
+  /** Runtime only: the anchor building is gone from the map (closed until it comes back). */
+  detached?: boolean;
 }
 
 /** JSON lives in src/ (tsc does not copy it); resolve from dist/places or src/places. */
