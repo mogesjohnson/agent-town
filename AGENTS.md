@@ -7,8 +7,8 @@
 ## What this repo is
 
 <!-- REPO-SPECIFIC: one or two sentences. What it does, who uses it, current version. -->
-agent-town is a just-for-fun local sandbox where AI agents are characters in a 2D browser town.
-They wander, meet and chat in speech bubbles. Not for work.
+agent-town is a just-for-fun Natural 3D browser town where AI residents wander, meet and chat.
+The voxel look and Styles tab are retired. Do not restore them; 2D is an automatic failure fallback only.
 <!-- /REPO-SPECIFIC -->
 
 ## Commands
