@@ -1,4 +1,5 @@
 // Loads public/extensions/*.js and calls mount({ slot, api }) on each. See README "Extensions".
+document.head.append(Object.assign(document.createElement("link"), { rel: "stylesheet", href: "extensions/extensions.css" }));
 const api = {
   get: (p) => fetch(p).then((r) => r.json()),
   post: (p, body) => fetch(p, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body ?? {}) }).then((r) => r.json()),
