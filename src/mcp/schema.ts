@@ -29,6 +29,8 @@ export const shapes = {
     name: text(40),
     x: z.number().int().min(0).max(39).optional().describe("Top-left column on the 40x25 map. Omit x and y to use near."),
     y: z.number().int().min(0).max(24).optional(),
+    near: z.union([z.string().trim().min(1).max(40), z.object({ x: z.number().min(0).max(39), y: z.number().min(0).max(24) }).strict()]).optional()
+      .describe('Used when x and y are omitted: a place id, a building id or name, "pond"/"water", or {x, y}. Free spots are tried nearest first.'),
     id: placeId.optional().describe("Defaults to a slug of the name."),
     w: side.optional(), h: side.optional().describe("Footprint; defaults to the type's size."),
     hours: z.object({ open: z.number().int().min(0).max(23), close: z.number().int().min(1).max(24) }).strict()
