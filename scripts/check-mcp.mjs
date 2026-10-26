@@ -121,6 +121,12 @@ try {
   assert((await call("get_places")).places.places.some((p) => p.id === place.id));
   await call("undo_last_change");
   assert(!(await call("get_places")).places.places.some((p) => p.id === place.id));
+  const pondVenue = (await call("add_place", { id: "mcp-pond-shop", name: "Pond Shop", type, near: "pond", w: 2, h: 2 })).after.place;
+  const pondMap = await call("get_map");
+  for (let y = pondVenue.y; y < pondVenue.y + pondVenue.h; y++)
+    for (let x = pondVenue.x; x < pondVenue.x + pondVenue.w; x++)
+      assert(!["water", "tree"].includes(pondMap.tiles[y][x]));
+  await call("undo_last_change");
   const simultaneous = await Promise.all([call("resume_town"), call("pause_town")]);
   assert.notEqual(simultaneous[0].change, simultaneous[1].change);
   const undone = await Promise.all([call("undo_last_change"), call("undo_last_change")]);
