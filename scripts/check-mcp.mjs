@@ -68,6 +68,29 @@ try {
   const created = await call("add_place", args);
   const place = created.after.place;
   assert.equal(place.id, args.id);
+  const post = async (path, body) => fetch(`http://127.0.0.1:${config.port}${path}`, {
+    method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body),
+  });
+  const path = `/api/places/${place.id}/move`;
+  assert.equal((await post(path, { x: 39, y: 24, dryRun: true })).status, 400);
+  assert.equal((await post(path, { x: 18, y: 10, dryRun: true })).status, 409);
+  assert.equal((await post(path, { x: null, y: 0 })).status, 400);
+  const layout = await call("get_map");
+  const occupied = [...layout.buildings, ...layout.places.filter((p) => p.id !== place.id)];
+  const overlaps = (x, y, r) => x < r.x + r.w && r.x < x + place.w && y < r.y + r.h && r.y < y + place.h;
+  let spot;
+  for (let y = 0; !spot && y + place.h <= layout.height; y++)
+    for (let x = 0; x + place.w <= layout.width; x++)
+      if ((x !== place.x || y !== place.y) && !occupied.some((r) => overlaps(x, y, r))) { spot = { x, y }; break; }
+  assert(spot, "a free relocation spot exists");
+  assert.equal((await post(path, { ...spot, dryRun: true })).status, 200);
+  assert.equal((await call("get_places")).places.places.find((p) => p.id === place.id).x, place.x);
+  await post("/api/places/toggle", { id: place.id, enabled: false });
+  assert.equal((await post(path, spot)).status, 200);
+  const relocated = (await call("get_places")).places.places.find((p) => p.id === place.id);
+  assert.equal(relocated.x, spot.x); assert.equal(relocated.y, spot.y); assert.equal(relocated.enabled, false);
+  assert.equal((await post(path, { x: place.x, y: place.y })).status, 200);
+  await post("/api/places/toggle", { id: place.id, enabled: true });
   assert((await call("get_map")).places.some((p) => p.id === place.id));
   await call("remove_place", { id: place.id });
   assert(!(await call("get_places")).places.places.some((p) => p.id === place.id));

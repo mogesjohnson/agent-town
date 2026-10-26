@@ -119,6 +119,28 @@ export function register(ctx: Ctx) {
     const v = views().find((x) => x.id === id)!, p = catalog.find((c) => c.id === id)!;
     return { ...v, vibe: p.vibe, items: p.items, topics: p.topics };
   };
+  ctx.routes.add("POST", "/api/places/:id/move", async (req, res, _url, params) => {
+    const p = catalog.find((c) => c.id === params.id);
+    if (!p) return send(res, 404, { ok: false, error: "unknown place" });
+    if (!p.custom) return send(res, 403, { ok: false, error: "move the built-in place's anchor building instead" });
+    const b = await readBody(req);
+    if (!b || typeof b !== "object" || Array.isArray(b)
+      || Object.keys(b).some((k) => !["x", "y", "dryRun"].includes(k))
+      || !Number.isInteger(b.x) || !Number.isInteger(b.y)
+      || (b.dryRun !== undefined && typeof b.dryRun !== "boolean"))
+      return send(res, 400, { ok: false, error: "integer x and y, optional boolean dryRun required" });
+    const before = detail(p.id);
+    const r = buildPlace({ ...before, x: b.x, y: b.y }, catalog.filter((c) => c !== p));
+    if (!("place" in r)) return send(res, r.status, { ok: false, error: r.error });
+    if (!b.dryRun) {
+      Object.assign(p, r.place); // catalog and persisted custom list share this object
+      store.set(p.id, before.enabled); // preserve open/closed setting and save once
+      retarget(town, jobs, p, clock.hour, shifts);
+      town.broadcastState();
+    }
+    send(res, 200, { ok: true, dryRun: !!b.dryRun,
+      place: b.dryRun ? { ...before, x: b.x, y: b.y } : detail(p.id) });
+  });
   ctx.routes.add("GET", "/api/places/types", (_req, res) => send(res, 200, { types: typeList(catalog) }));
   ctx.routes.add("POST", "/api/places", async (req, res) => {
     const r = buildPlace(await readBody(req), catalog);
