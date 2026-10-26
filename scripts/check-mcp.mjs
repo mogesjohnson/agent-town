@@ -33,6 +33,11 @@ try {
   const resources = await client.listResources();
   assert(resources.resources.some((r) => r.uri === "town://map"));
   await call("pause_town");
+  const world = await call("get_world");
+  assert.equal(world.town.paused, true);
+  assert(world.placeTypes.types.length > 0);
+  assert.equal(world.map.terrainCounts.grass, 1000);
+  assert.equal(world.map.tiles, undefined);
   const error = async (name, args) => assert.equal((await client.callTool({ name, arguments: args })).isError, true);
   const mapBefore = await call("get_map");
   await error("place_building", { type: "house", x: 39, y: 24, dryRun: true });

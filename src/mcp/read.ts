@@ -11,7 +11,22 @@ const value = (r: Reply, pick: (d: any) => unknown = (d) => d) =>
 
 const state = (base: URL) => call(base, "/api/state");
 
+/** Compact planning context avoids a thousand tile strings and several MCP round trips. */
+async function world(base: URL) {
+  const [snapshot, map, palette, types] = await Promise.all([
+    state(base), call(base, "/api/map"), call(base, "/api/map/palette"), call(base, "/api/places/types"),
+  ]);
+  const compactMap = value(map, (m) => ({ width: m.width, height: m.height, version: m.version,
+    buildings: m.buildings, terrainCounts: (m.tiles as string[][]).flat().reduce<Record<string, number>>(
+      (counts, tile) => { counts[tile] = (counts[tile] ?? 0) + 1; return counts; }, {}) }));
+  return { town: value(snapshot, (s) => ({ paused: s.paused,
+    agents: s.agents.map((a: any) => ({ name: a.name, x: a.x, y: a.y, status: a.status })),
+    places: s.places?.list ?? [] })), map: compactMap, palette: value(palette), placeTypes: value(types),
+    hint: "Use add_place near a named target for automatic free-space search; get_map only when individual tile coordinates are needed." };
+}
+
 export const VIEWS: View[] = [
+  { name: "world", title: "World planning overview", description: "Start here for world additions: compact agent positions, places, buildings, terrain counts, building/tile palette and place types in one call. Omits full tile grid and chat history.", load: world },
   { name: "town", title: "Town state", description: "Full snapshot: size, landmarks, paused flag, usage, agents and last 50 chat lines.",
     load: async (b) => value(await state(b)) },
   { name: "agents", title: "Agents", description: "Every agent with position (x, y), status, provider, turns used and speech bubble.",
