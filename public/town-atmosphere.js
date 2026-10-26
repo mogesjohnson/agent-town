@@ -9,7 +9,10 @@ export function createAtmosphere(view, host) {
   const drops = new THREE.LineSegments(geometry, new THREE.LineBasicMaterial({ color: "#adcbdc", transparent: true, opacity: 0.5 }));
   const flakes = new THREE.Points(snowGeometry, new THREE.PointsMaterial({ color: "#f2f6ff", size: 0.12, transparent: true, opacity: 0.85 }));
   drops.frustumCulled = flakes.frustumCulled = false; group.add(drops, flakes);
-  for (let i = 0; i < count; i++) snow.set([(i * 17.31 % 48) - 24, i * 1.73 % 18, (i * 13.97 % 38) - 19], i * 3);
+  for (let i = 0; i < count; i++) {
+    const x = (i * 17.31 % 48) - 24, y = i * 1.73 % 18, z = (i * 13.97 % 38) - 19;
+    snow.set([x, y, z], i * 3); rain.set([x, y, z, x, y + 0.55, z], i * 6);
+  }
   const panel = document.createElement("label"), select = document.createElement("select");
   panel.className = "atmosphere-controls"; panel.textContent = "Weather ";
   select.setAttribute("aria-label", "Town weather");
@@ -33,7 +36,8 @@ export function createAtmosphere(view, host) {
         if (!trees.has(object)) trees.set(object, object.rotation.z);
       }
       for (const material of [object.material].flat().filter(Boolean)) {
-        if (!(tag === "water" || material.isMeshPhysicalMaterial) || water.has(material)) continue;
+        const legacyWater = material.isMeshPhysicalMaterial && material.roughness === 0.16 && material.metalness === 0.3;
+        if (!(tag === "water" || legacyWater) || water.has(material)) continue;
         const original = material.onBeforeCompile;
         water.set(material, { original, object });
         material.onBeforeCompile = function(shader, renderer) {
