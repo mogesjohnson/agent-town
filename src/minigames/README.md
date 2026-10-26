@@ -6,7 +6,9 @@ Everything lives in this directory. The rest of the repo only has one marked hoo
 ## Design
 
 - `registerMinigames(town, emit, server?)` (in `index.ts`) is the only entry point.
-  `server.ts` calls it once, after the town is built (look for `minigames hook (code-creator)`).
+  `extension.ts` wraps it as `export default { name, register(ctx) }` for the shared
+  extensions loader (grok/extensions). No existing file is edited; until that loader lands,
+  nothing calls it, so the feature is off by default.
 - A host loop runs every few seconds. When the town is not paused and no game is running,
   it picks two or three free agents (idle or walking, not on chat cooldown) and walks them
   to the Plaza. Once they arrive (or after a short timeout) the game starts.
