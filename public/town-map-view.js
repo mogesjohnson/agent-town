@@ -2,7 +2,7 @@ import * as THREE from "three";
 
 export function createMapView(view) {
   const root = new THREE.Group(), tiles = new THREE.Group(), buildings = new Map();
-  root.name = "editable-map"; root.add(tiles); view.scene.add(root);
+  root.name = "editable-map"; root.add(tiles); (view.world?.root ?? view.scene).add(root);
   const cube = new THREE.BoxGeometry(1, 1, 1), cone = new THREE.ConeGeometry(1, 1, 12);
   const sphere = new THREE.SphereGeometry(1, 12, 8), materials = new Map();
   const ray = new THREE.Raycaster(), plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -0.16);

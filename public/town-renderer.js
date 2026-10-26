@@ -4,6 +4,7 @@ import { createOverlays } from "./town-overlays.js";
 import { createLighting } from "./town-lighting.js";
 import { createExplorer } from "./town-explorer.js";
 import { createPlaceView } from "./town-place-view.js";
+import { createMapView } from "./town-map-view.js";
 
 export function mountTown(canvas, fallback) {
   const host = document.createElement("div");
@@ -16,14 +17,18 @@ export function mountTown(canvas, fallback) {
   const lighting = createLighting(view, host);
   const explorer = view.camera.isPerspectiveCamera ? createExplorer(view, host) : null;
   const places = createPlaceView(view);
+  const map = createMapView(view);
+  map.ready.then(() => { host.dataset.map = "ready"; }).catch((error) => {
+    host.dataset.map = "failed"; console.warn("Editable map unavailable", error);
+  });
   let paused = false, disposed = false;
   canvas.hidden = true;
   view.onFrame((now) => {
-    lighting.animate(now, paused); crowd.animate(now); explorer?.animate(now); places.animate(); overlays.animate(now, paused);
+    lighting.animate(now, paused); crowd.animate(now); explorer?.animate(now); places.animate(); map.animate(); overlays.animate(now, paused);
   });
   const dispose = () => {
     if (disposed) return;
-    disposed = true; places.dispose(); explorer?.dispose(); crowd.dispose(); lighting.dispose(); view.dispose(); host.remove(); canvas.hidden = false;
+    disposed = true; map.dispose(); places.dispose(); explorer?.dispose(); crowd.dispose(); lighting.dispose(); view.dispose(); host.remove(); canvas.hidden = false;
   };
   host.querySelector("canvas").addEventListener("webglcontextlost", (event) => {
     event.preventDefault(); dispose(); fallback();
