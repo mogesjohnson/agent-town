@@ -1,21 +1,17 @@
-import type { Server } from "node:http";
-import type { Emit, Town } from "../sim.js";
+import type { ServerResponse } from "node:http";
+import type { Routes } from "../extensions.js";
+import type { Town } from "../sim.js";
 import { registerMinigames } from "./index.js";
 
-/**
- * Extension entry for the shared loader planned in grok/extensions (src/extensions.ts and
- * public/extensions/). Not wired up yet: that branch has not landed, so this shape is a guess
- * (`export default { name, register(ctx) }`) and will be adapted to the real API once it does.
- */
-export interface ExtensionContext { town: Town; emit: Emit; server?: Server }
+/** The ctx that src/extensions.ts passes to register() (see README "Extensions"). */
+interface ExtensionCtx { town: Town; clients: Set<ServerResponse>; routes: Routes }
 
-const minigames = {
-  name: "minigames",
-  /** Browser script the client-side loader should include; served by registerMinigames. */
-  clientScripts: ["/minigames/overlay.js"],
-  register(ctx: ExtensionContext) {
-    return registerMinigames(ctx.town, ctx.emit, ctx.server);
-  },
-};
-
-export default minigames;
+/** Loaded by loadExtensions() from dist/minigames/extension.js. */
+export function register({ town, clients, routes }: ExtensionCtx) {
+  // Same SSE framing as server.ts, written to the shared client set.
+  const emit = (event: string, data: unknown) => {
+    const msg = `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
+    for (const c of clients) c.write(msg);
+  };
+  return registerMinigames(town, emit, routes);
+}

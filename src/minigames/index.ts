@@ -1,24 +1,20 @@
-import type { IncomingMessage, Server, ServerResponse } from "node:http";
-import { readFile } from "node:fs/promises";
-import { fileURLToPath } from "node:url";
+import type { Routes } from "../extensions.js";
 import { LANDMARKS, type Agent, type Emit, type Town } from "../sim.js";
 import { GAMES, type Game, type GameCtx } from "./games.js";
 import { Scoreboard } from "./scoreboard.js";
 
 const FIRST_GAME_MS = 15_000, BETWEEN_GAMES_MS = 45_000, GATHER_MS = 15_000, COOLDOWN_MS = 10_000;
-const OVERLAY = fileURLToPath(new URL("../../src/minigames/overlay.js", import.meta.url));
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const shuffle = <T>(xs: T[]) => xs.map((x) => [Math.random(), x] as const).sort((a, b) => a[0] - b[0]).map((p) => p[1]);
-type Listener = (req: IncomingMessage, res: ServerResponse) => void;
 
 interface Current { game: Game["id"]; title: string; players: string[]; phase: "gather" | "play"; startedAt: number }
 
 /**
  * Plug plaza minigames into an existing town. Adds `minigames` to `town.state()`, emits
- * `minigame` and `scoreboard` SSE events through `emit`, and (when given the server) serves
- * GET /api/minigames and GET /minigames/overlay.js. Edits no sim or server code.
+ * `minigame` and `scoreboard` SSE events through `emit`, and (when given the route table) serves
+ * GET /api/minigames. Edits no sim or server code.
  */
-export function registerMinigames(town: Town, emit: Emit, server?: Server) {
+export function registerMinigames(town: Town, emit: Emit, routes?: Routes) {
   const board = new Scoreboard();
   const plaza = LANDMARKS.find((l) => l.name === "Plaza") ?? LANDMARKS[0];
   let current: Current | null = null;
@@ -98,22 +94,9 @@ export function registerMinigames(town: Town, emit: Emit, server?: Server) {
     void run(game, free.slice(0, Math.min(game.maxPlayers, free.length)));
   }, 2_000).unref();
 
-  if (server) {
-    const prev = server.listeners("request") as Listener[];
-    server.removeAllListeners("request");
-    server.on("request", (req: IncomingMessage, res: ServerResponse) => {
-      const path = (req.url ?? "/").split("?")[0];
-      if (req.method === "GET" && path === "/api/minigames") {
-        res.writeHead(200, { "content-type": "application/json" });
-        return void res.end(JSON.stringify(snapshot()));
-      }
-      if (req.method === "GET" && path === "/minigames/overlay.js") {
-        return void readFile(OVERLAY).then(
-          (d) => { res.writeHead(200, { "content-type": "text/javascript" }); res.end(d); },
-          () => { res.writeHead(404); res.end("not found"); });
-      }
-      for (const l of prev) l.call(server, req, res);
-    });
-  }
+  routes?.add("GET", "/api/minigames", (_req, res) => {
+    res.writeHead(200, { "content-type": "application/json" });
+    res.end(JSON.stringify(snapshot()));
+  });
   return { snapshot };
 }
