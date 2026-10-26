@@ -1,5 +1,10 @@
 # Credits
 
+- RobotExpressive by Tomás Laulhé (Quaternius), modifications by Don McCurdy,
+  CC0 1.0. Animated visitor and resident model in the natural style.
+  https://github.com/mrdoob/three.js/blob/r186/examples/models/gltf/RobotExpressive/README.md
+  Downloaded as data with a pinned SHA-256 by `scripts/natural-assets.mjs`.
+
 - Three.js and OrbitControls: three.js authors, MIT.
   https://github.com/mrdoob/three.js
   The build copies the upstream license to public/vendor/THREE-LICENSE.txt.
