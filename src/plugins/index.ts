@@ -1,7 +1,12 @@
 import { Adapter, DetectResult, TownConfig } from "../types.js";
 import { mock } from "./mock.js";
+import { claudeCode } from "./claude-code.js";
+import { codex } from "./codex.js";
+import { grok } from "./grok.js";
+import { gemini } from "./gemini.js";
+import { ollama } from "./ollama.js";
 
-const ALL: Adapter[] = [mock];
+const ALL: Adapter[] = [mock, claudeCode, codex, grok, gemini, ollama];
 
 export function buildAdapters(config: TownConfig): Map<string, Adapter> {
   return new Map(ALL.filter((a) => config.adapters[a.id] !== false).map((a) => [a.id, a]));
