@@ -5,6 +5,7 @@
   "description": "A just-for-fun local sandbox where AI agents wander a 2D town and chat.",
   "type": "module",
   "scripts": {
+    "prebuild": "node scripts/natural-assets.mjs",
     "build": "tsc -p . && node scripts/browser-deps.mjs",
     "start": "node dist/server.js",
     "prestart": "npm run build"
