@@ -156,7 +156,7 @@ export class Town {
     const now = Date.now();
     for (const a of this.agents) {
       if (a.bubble && a.bubble.until < now) a.bubble = undefined;
-      if (["chatting", "thinking", "unavailable", "out-of-turns"].includes(a.status)) continue;
+      if (!["idle", "walking", "paused"].includes(a.status)) continue;
       if (this.paused) { a.status = "paused"; continue; }
       if (a.x === a.tx && a.y === a.ty) {
         if (Math.random() < 0.3) {
