@@ -1,9 +1,6 @@
-// HTTP routes for the season system, self-registering so server.ts needs one hook line.
-import type { IncomingMessage, Server, ServerResponse } from "node:http";
-import type { Town } from "../sim.js";
+// HTTP handler for the season routes; registered by extension.ts.
+import type { IncomingMessage, ServerResponse } from "node:http";
 import { clearEvent, getActiveEvent, getEvents, getSource, getTopicHint, getVisuals, triggerEvent } from "./index.js";
-
-type Listener = (req: IncomingMessage, res: ServerResponse) => void;
 
 function send(res: ServerResponse, status: number, o: unknown) {
   res.writeHead(status, { "content-type": "application/json" });
@@ -59,28 +56,4 @@ export async function handleSeasonRequest(req: IncomingMessage, res: ServerRespo
   onChange?.();
   send(res, 200, { ok: true, ...seasonState() });
   return true;
-}
-
-/**
- * Wires the season system into a running server and town:
- * routes are checked before the server's existing request listener, and the active
- * event's topic hint is appended to every agent system prompt.
- */
-export function attachSeasons(server: Server, town: Town): void {
-  const prev = server.listeners("request") as Listener[];
-  server.removeAllListeners("request");
-  server.on("request", (req: IncomingMessage, res: ServerResponse) => {
-    handleSeasonRequest(req, res, () => town.broadcastState())
-      .then((handled) => { if (!handled) for (const l of prev) l.call(server, req, res); })
-      .catch((e) => { console.error(`[seasons] ${(e as Error).message}`); if (!res.headersSent) send(res, 500, { ok: false }); });
-  });
-  // systemPrompt is private in TypeScript; wrapping it on this instance keeps sim.ts untouched.
-  const t = town as unknown as { systemPrompt(a: unknown, partner: string): string };
-  const base = t.systemPrompt.bind(town);
-  t.systemPrompt = (a, partner) => {
-    const hint = getTopicHint();
-    return hint ? `${base(a, partner)}\n${hint}` : base(a, partner);
-  };
-  const ev = getActiveEvent();
-  console.log(`[seasons] ${getEvents().length} events loaded; active: ${ev ? ev.id : "none"}`);
 }
