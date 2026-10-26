@@ -65,11 +65,20 @@ export function loadCatalog(dir = DATA_DIR): Place[] {
   for (const f of files) {
     let raw: any;
     try { raw = JSON.parse(readFileSync(join(dir, f), "utf8")); } catch { console.error(`[places] ${f}: invalid JSON`); continue; }
-    const errs = validatePlace(raw);
+    // Definition coordinates describe the original town; live anchors may have moved or vanished.
+    const definition = { ...raw };
+    if (raw?.anchor !== undefined) delete definition.anchor;
+    const errs = validatePlace(definition);
+    if (raw?.anchor !== undefined) {
+      if (!isText(raw.anchor, 40)) errs.push(`${raw.id}: anchor must be short plain text`);
+      const l = LANDMARKS.find((m) => m.name.toLowerCase() === String(raw.anchor).toLowerCase());
+      raw = l ? { ...raw, plot: { x: l.x, y: l.y }, footprint: { w: l.w, h: l.h } }
+        : { ...raw, detached: true }; // followAnchors reattaches renamed/restored building ids
+    }
     const r = rectOf(raw);
     if (!errs.length && out.some((o) => o.id === raw.id)) errs.push(`${raw.id}: duplicate id`);
     if (!errs.length && !raw.anchor && LANDMARKS.some((l) => overlaps(r, l))) errs.push(`${raw.id}: overlaps a landmark`);
-    if (!errs.length && out.some((o) => overlaps(r, rectOf(o)))) errs.push(`${raw.id}: overlaps another place`);
+    if (!errs.length && !raw.detached && out.some((o) => !o.detached && overlaps(r, rectOf(o)))) errs.push(`${raw.id}: overlaps another place`);
     if (errs.length) { console.error(`[places] skipping ${f}: ${errs.join("; ")}`); continue; }
     out.push(raw as Place);
   }

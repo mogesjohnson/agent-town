@@ -22,7 +22,7 @@ const slug = (s: string) => s.normalize("NFKD").toLowerCase().replace(/[^a-z]+/g
 /** Overlap with another place or a building where it is now (map editor moves included). */
 export function clash(p: Place, others: Place[]): string | undefined {
   const r = rectOf(p);
-  const o = others.find((q) => q.id !== p.id && overlaps(r, rectOf(q)));
+  const o = others.find((q) => !q.detached && q.id !== p.id && overlaps(r, rectOf(q)));
   if (o) return `overlaps place ${o.id}`;
   const l = LANDMARKS.find((m) => overlaps(r, m));
   if (l) return `overlaps building ${l.name}`;
