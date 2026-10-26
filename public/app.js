@@ -57,6 +57,33 @@ function render() {
     `<li data-name="${esc(a.name)}"><span class="dot" style="background:${a.color}"></span><b>${esc(a.name)}</b>
      <span class="st">${a.status} · ${a.turns}/${state.maxTurnsPerAgent}</span>
      <div class="sub">${esc(a.provider)} / ${esc(a.model)} · ${esc(a.account)}</div></li>`).join("");
+  renderTokens();
+}
+
+function renderTokens() {
+  const opened = new Set([...document.querySelectorAll(".token-agent[open]")].map((el) => el.dataset.name));
+  const sum = { reportedInput: 0, reportedOutput: 0, estimatedInput: 0, estimatedOutput: 0,
+    completedTurns: 0, failedTurns: 0, mockTurns: 0 };
+  const fmt = (n) => Number(n || 0).toLocaleString();
+  const details = (u) => {
+    const reported = u.reportedInput + u.reportedOutput;
+    const estimated = u.estimatedInput + u.estimatedOutput;
+    return `<div>Reported: <b>${fmt(reported)}</b> (${fmt(u.reportedInput)} in / ${fmt(u.reportedOutput)} out)</div>
+      <div>Estimated: <b>~${fmt(estimated)}</b> (~${fmt(u.estimatedInput)} in / ~${fmt(u.estimatedOutput)} out)</div>
+      <div>Average / completed turn: ${u.completedTurns ? `~${fmt(Math.round((reported + estimated) / u.completedTurns))}` : "—"}
+      · ${fmt(u.completedTurns)} completed · ${fmt(u.mockTurns)} mock · ${fmt(u.failedTurns)} unknown failed</div>`;
+  };
+  document.getElementById("token-agents").innerHTML = state.agents.map((a) => {
+    const u = a.tokenUsage;
+    if (!u) return `<div class="token-agent">${esc(a.name)}: accounting unavailable</div>`;
+    for (const key of Object.keys(sum)) sum[key] += u[key] || 0;
+    const last = u.lastTurn;
+    return `<details class="token-agent" data-name="${esc(a.name)}" ${opened.has(a.name) ? "open" : ""}><summary>${esc(a.name)} · ${fmt(u.reportedInput + u.reportedOutput)} reported
+      + ~${fmt(u.estimatedInput + u.estimatedOutput)} estimated</summary>${details(u)}
+      <div>Last turn: ${last ? `${last.source === "estimated" ? "~" : ""}${fmt(last.inputTokens + last.outputTokens)} tokens
+      (${fmt(last.inputTokens)} in / ${fmt(last.outputTokens)} out; ${esc(last.source)})` : "—"}</div></details>`;
+  }).join("");
+  document.getElementById("token-summary").innerHTML = details(sum);
 }
 
 function bubble(x, y, text) {
