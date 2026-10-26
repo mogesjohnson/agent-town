@@ -22,5 +22,7 @@ export interface Paper extends PaperContent {
   byline: string;
   source: "model" | "template";
   model?: string;
+  /** Rumor-mill lines from the tracker, shown under the gossip column. */
+  rumors?: string[];
   stats: { lines: number; conversations: number; meetings: number; games: number; other: number };
 }
