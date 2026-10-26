@@ -1,7 +1,7 @@
 // Public API of the season system. Import from "./seasons/index.js".
 import { loadEvents } from "./loader.js";
 import { pickFrom } from "./picker.js";
-import { SeasonEvent } from "./types.js";
+import { SeasonEvent, Visuals } from "./types.js";
 
 export type { SeasonEvent, Visuals, Weather, TimeOfDay, DateWindow } from "./types.js";
 export { validateEvent, loadEvents } from "./loader.js";
@@ -46,4 +46,29 @@ export function getSource(): "manual" | "date" {
 /** The manual override if set, otherwise the date-based pick for `date`. */
 export function getActiveEvent(date: Date = new Date()): SeasonEvent | null {
   return (overrideId && getEvents().find((e) => e.id === overrideId)) || pickEvent(date);
+}
+
+/** Plain-data visuals for any renderer. `eventId` is null and the scene is neutral when no event is active. */
+export interface SceneVisuals extends Visuals { eventId: string | null; eventName: string | null }
+
+const NEUTRAL: Visuals = { decor: [], weather: "clear", tint: "#ffffff", ambient: { timeOfDay: "day", brightness: 1 } };
+
+/**
+ * A line to append to an agent's system prompt, or "" when no event is active.
+ * The hint is flavour only; it never adds tools or instructions to do real work.
+ */
+export function getTopicHint(date: Date = new Date()): string {
+  const ev = getActiveEvent(date);
+  return ev ? `Town event: ${ev.name}. ${ev.topicHint}` : "";
+}
+
+/** A fresh copy of the active event's visuals (safe to mutate), JSON-serialisable, no drawing code. */
+export function getVisuals(date: Date = new Date()): SceneVisuals {
+  const ev = getActiveEvent(date);
+  const v = ev?.visuals ?? NEUTRAL;
+  return {
+    eventId: ev?.id ?? null, eventName: ev?.name ?? null,
+    decor: [...v.decor], weather: v.weather, tint: v.tint,
+    ...(v.ambient ? { ambient: { ...v.ambient } } : {}),
+  };
 }
