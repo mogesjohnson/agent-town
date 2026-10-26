@@ -38,3 +38,4 @@ desktop.ini
 # REPO-SPECIFIC-BELOW: add repo entries after this line.
 town.config.json
 public/vendor/
+public/assets/
