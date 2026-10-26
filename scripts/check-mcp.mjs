@@ -36,7 +36,7 @@ try {
   const world = await call("get_world");
   assert.equal(world.town.paused, true);
   assert(world.placeTypes.types.length > 0);
-  assert.equal(world.map.terrainCounts.grass, 893);
+  assert.equal(world.map.terrainCounts.grass, 895); // two default trees would overlap existing venues
   assert.ok(world.map.buildings.some((b) => b.id === "cottage-claude"));
   assert.equal(world.map.tiles, undefined);
   const error = async (name, args) => assert.equal((await client.callTool({ name, arguments: args })).isError, true);

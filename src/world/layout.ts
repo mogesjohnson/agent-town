@@ -21,12 +21,12 @@ const layout = JSON.parse(readFileSync(new URL("../../public/world-default.json"
 const blank = (): string[][] => Array.from({ length: H }, () => Array.from({ length: W }, () => "grass"));
 
 /** Fresh town: sim venues plus the scenic houses, paths, trees and pond. */
-export function coherentDefault(landmarks: { name: string; x: number; y: number; w: number; h: number }[]): WorldMap {
+export function coherentDefault(landmarks: { name: string; x: number; y: number; w: number; h: number }[], reserved: Rect[] = []): WorldMap {
   const map: WorldMap = {
     width: W, height: H, tiles: blank(), scenery: [], worldVersion: WORLD_VERSION,
     buildings: landmarks.map((l) => ({ id: l.name.toLowerCase(), type: l.name.toLowerCase(), x: l.x, y: l.y, w: l.w, h: l.h, name: l.name })),
   };
-  seed(map);
+  seed(map, reserved);
   map.scenery = projectScenery(map);
   return map;
 }
@@ -36,13 +36,17 @@ function paint(tiles: string[][], x: number, y: number, type: string) {
 }
 
 /** Adds default terrain and cottages. House footprints match BUILDING_TYPES.house (3x3). */
-export function seed(map: WorldMap) {
+type Rect = { x: number; y: number; w: number; h: number };
+const overlaps = (a: Rect, b: Rect) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+export function seed(map: WorldMap, reserved: Rect[] = []) {
+  const occupied = (r: Rect) => [...reserved, ...map.buildings].some((b) => overlaps(r, b));
   for (let x = 0; x < W; x++) paint(map.tiles, x, layout.roadRow, "road");
   for (const col of layout.roadCols) for (let y = 0; y < H; y++) paint(map.tiles, col, y, "road");
-  for (const [x, y] of layout.trees) paint(map.tiles, x, y, "tree");
+  for (const [x, y] of layout.trees) if (!occupied({ x, y, w: 1, h: 1 })) paint(map.tiles, x, y, "tree");
   for (let y = layout.pond.y; y < layout.pond.y + layout.pond.h; y++)
-    for (let x = layout.pond.x; x < layout.pond.x + layout.pond.w; x++) paint(map.tiles, x, y, "water");
-  for (const house of layout.houses) if (!map.buildings.some((b) => b.id === house.id))
+    for (let x = layout.pond.x; x < layout.pond.x + layout.pond.w; x++)
+      if (!occupied({ x, y, w: 1, h: 1 })) paint(map.tiles, x, y, "water");
+  for (const house of layout.houses) if (!occupied({ ...house, w: 3, h: 3 }) && !map.buildings.some((b) => b.id === house.id))
     map.buildings.push({ id: house.id, type: "house", x: house.x, y: house.y, w: 3, h: 3, name: house.name });
 }
 

@@ -1,7 +1,8 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { LANDMARKS, type Town } from "../sim.js";
 import { TownMap, MapError, TILE_TYPES, BUILDING_TYPES } from "./model.js";
-import { readWorld, writeWorld, WORLD_PATH } from "../world/store.js";
+import { readWorld, writeWorld, WORLD_PATH, readPlaceFootprints } from "../world/store.js";
+import { loadCatalog, rectOf } from "../places/catalog.js";
 
 type Ctx = {
   town: Town;
@@ -34,7 +35,9 @@ export function register(ctx: Ctx) {
     return (Array.isArray(p) ? p : p?.list ?? []).filter((x: any) => [x?.x, x?.y, x?.w, x?.h].every(Number.isInteger));
   };
   // Anchored places are sim landmarks, i.e. our own buildings, so only the others are reserved.
-  const tm = new TownMap(() => places().filter((p) => !p.anchor));
+  // Loader order is mapeditor before places: reserve saved venues before generating cottages.
+  const startup = [...loadCatalog().filter((p) => !p.anchor).map((p) => ({ id: p.id, ...rectOf(p) })), ...readPlaceFootprints()];
+  const tm = new TownMap(() => (ctx.town.state() as any).places ? places().filter((p) => !p.anchor) : startup);
   const saved = readWorld();
   if (saved) {
     try { tm.install(saved.map); tm.adoptHistory(saved.history); }

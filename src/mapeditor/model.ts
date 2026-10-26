@@ -21,17 +21,17 @@ export class MapError extends Error { constructor(msg: string, public status = 4
 const clone = (m: MapData): MapData => JSON.parse(JSON.stringify(m));
 const isInt = (n: unknown): n is number => Number.isInteger(n);
 
-export function defaultMap(): MapData { return coherentDefault(LANDMARKS); }
+export function defaultMap(reserved: Rect[] = []): MapData { return coherentDefault(LANDMARKS, reserved); }
 
 /** The town map plus an undoable, author-tagged edit log. */
 export class TownMap {
-  map = defaultMap();
+  map: MapData;
   version = 1;
   history: Edit[] = [];
   private seq = 0;
   private bseq = 0;
   /** Footprints owned by other features (e.g. places from #14); edits may not touch them. */
-  constructor(public reserved: () => (Rect & { id: string })[] = () => []) {}
+  constructor(public reserved: () => (Rect & { id: string })[] = () => []) { this.map = defaultMap(reserved()); }
 
   tile(x: number, y: number) { return this.map.tiles[y]?.[x]; }
 
@@ -129,7 +129,7 @@ export class TownMap {
     this.map = { width: W, height: H, tiles, buildings: [], scenery: [], worldVersion: 0 };
     try {
       for (const b of m.buildings) this.addBuilding(b);
-      if (m.worldVersion == null && legacyDefault(m.buildings, tiles)) seed(this.map);
+      if (m.worldVersion == null && legacyDefault(m.buildings, tiles)) seed(this.map, this.reserved());
       this.refresh();
       if (Number.isInteger(m.version) && m.version > 0) this.version = m.version;
     } catch (e) { this.map = before; throw e; }
@@ -137,7 +137,9 @@ export class TownMap {
 
   load(m: any, actor: string) {
     const before = clone(this.map);
+    const version = this.version;
     this.install(m);
+    this.version = version; // imported snapshot revisions must not rewind live renderer revisions
     return this.commit(actor, "load", `loaded map with ${this.map.buildings.length} building(s)`, before);
   }
 
@@ -156,8 +158,9 @@ export class TownMap {
     if (!last) throw new MapError("nothing to undo", 409);
     if (editId != null && editId !== last.editId) throw new MapError(`only the latest edit (${last.editId}) can be undone`, 409);
     const before = clone(this.map);
-    this.map = clone(last.before);
-    this.refresh();
+    const version = this.version;
+    this.install(last.before); // validate against places added since this edit before changing anything
+    this.version = version;
     last.undone = true;
     const edit = this.commit(actor, "undo", `undid ${last.editId} (${last.summary})`, before);
     return { edit, undone: last };
