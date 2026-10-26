@@ -58,6 +58,12 @@ Open/closed state, identity, menu and jobs are preserved; the change is logged a
 be reverted with `undo_last_change`. Built-in venues move through their anchor building
 with `move_building`. Relocation rejects conflicts without deleting the original venue.
 
+`add_place` previews now use the actual place builder, returning the generated id and
+validated footprint without saving. Out-of-bounds or occupied plots fail in preview as
+they do on apply. MCP changes, previews and undo requests share one server-side queue,
+so simultaneous clients cannot undo the same log entry twice. A failed request releases
+the queue. This does not lock direct editor/HTTP writes; apply always validates again.
+
 | Resource | Tool | Source |
 | --- | --- | --- |
 | `town://town` | `get_town` | `GET /api/state`: size, landmarks, paused, usage, agents, last 50 lines |

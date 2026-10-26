@@ -114,7 +114,13 @@ try {
   assert((await call("get_places")).places.places.some((p) => p.id === place.id));
   await call("undo_last_change");
   assert(!(await call("get_places")).places.places.some((p) => p.id === place.id));
-  console.log(`pass: MCP handshake, ${tools.tools.length} tools, resources, invalid/valid previews, building and place add/move/read/remove/undo`);
+  const simultaneous = await Promise.all([call("resume_town"), call("pause_town")]);
+  assert.notEqual(simultaneous[0].change, simultaneous[1].change);
+  const undone = await Promise.all([call("undo_last_change"), call("undo_last_change")]);
+  assert.notEqual(undone[0].undid, undone[1].undid);
+  assert.deepEqual(new Set(undone.map((r) => r.undid)), new Set(simultaneous.map((r) => r.change)));
+  assert.equal((await call("get_town")).paused, true);
+  console.log(`pass: MCP handshake, ${tools.tools.length} tools, resources, truthful previews, building/place add/move/remove/undo and concurrent change/undo serialization`);
 } finally {
   await client.close();
   server.kill();
