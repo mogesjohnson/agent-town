@@ -38,6 +38,8 @@ export class Town {
   private callTimes: number[] = [];
   private activeCalls = new WeakSet<Agent>();
   promptHooks: ((prompt: string, info: { agent: string; partner: string }) => string)[] = [];
+  /** Installed by the map extension; standalone simulations retain a bounded open grid. */
+  canEnter = (x: number, y: number) => x >= 0 && y >= 0 && x < W && y < H;
 
   constructor(public config: TownConfig, private adapters: Map<string, Adapter>, private emit: Emit) {}
 
@@ -175,17 +177,38 @@ export class Town {
       if (a.x === a.tx && a.y === a.ty) {
         if (Math.random() < 0.3) {
           const lm = LANDMARKS[rnd(LANDMARKS.length)];
-          a.tx = Math.random() < 0.6 ? lm.x + rnd(lm.w) : rnd(W);
-          a.ty = Math.random() < 0.6 ? lm.y + rnd(lm.h) : rnd(H);
+          a.tx = lm && Math.random() < 0.6 ? lm.x + rnd(lm.w) : rnd(W);
+          a.ty = lm && Math.random() < 0.6 ? lm.y + rnd(lm.h) : rnd(H);
         }
         a.status = "idle";
       } else {
-        a.x += Math.sign(a.tx - a.x); a.y += Math.sign(a.ty - a.y);
-        a.status = "walking";
+        const next = this.nextStep(a);
+        if (next) { [a.x, a.y] = next; a.status = "walking"; }
+        else { a.tx = a.x; a.ty = a.y; a.status = "idle"; }
       }
     }
     if (!this.paused) this.findMeetings(now);
     this.broadcastState();
+  }
+
+  /** Route around blocked terrain; check before moving, including a free goal beyond water. */
+  private nextStep(a: Agent): [number, number] | null {
+    if (!this.canEnter(a.tx, a.ty)) return null;
+    const start = a.y * W + a.x, goal = a.ty * W + a.tx;
+    const previous = new Int32Array(W * H).fill(-1), queue = [start];
+    previous[start] = start;
+    for (let i = 0; i < queue.length && previous[goal] < 0; i++) {
+      const cell = queue[i], x = cell % W, y = Math.floor(cell / W);
+      for (const [nx, ny] of [[x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]]) {
+        if (nx < 0 || ny < 0 || nx >= W || ny >= H || !this.canEnter(nx, ny)) continue;
+        const n = ny * W + nx;
+        if (previous[n] < 0) { previous[n] = cell; queue.push(n); }
+      }
+    }
+    if (previous[goal] < 0) return null;
+    let step = goal;
+    while (previous[step] !== start && step !== start) step = previous[step];
+    return [step % W, Math.floor(step / W)];
   }
 
   private findMeetings(now: number) {
