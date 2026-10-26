@@ -111,6 +111,7 @@ try {
   await town.ready;
   client = await connect();
   const kept = await call(client, "get_memories");
+  await call(client, "pause_town");
   assert.equal(bookHas(kept), true);
   const preview = await call(client, "forget_memories", { agent: "Claude", dryRun: true });
   assert.equal(preview.dryRun, true);
@@ -121,6 +122,9 @@ try {
   await client.close();
   await town.stop();
 
+  // Test persistence of deletion, not newly observed meetings/visits after startup.
+  config.agents = [];
+  await writeFile(resolve(cwd, "town.config.json"), JSON.stringify(config));
   town = startTracked();
   await town.ready;
   client = await connect();
