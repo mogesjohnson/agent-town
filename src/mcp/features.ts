@@ -78,5 +78,13 @@ export function featureOps(self: Self): Record<string, Run> {
       if (dry) return { before: cur, after: body, revert };
       return { before: cur, after: await self(`/api/moods/${encodeURIComponent(cur.agent)}`, body), revert };
     },
+    "memory.forget": async (a: Args<"memory.forget">, dry) => {
+      const before = await self("/api/memories");
+      if (a.agent && !(await self("/api/state")).agents?.some((agent: { name: string }) => agent.name === a.agent))
+        throw new OpError(`unknown agent "${a.agent}"`, 404);
+      const after = { forgotten: a.agent ?? "*" };
+      if (dry) return { before, after };
+      return { before, after: await self("/api/memories/forget", a.agent ? { agent: a.agent } : {}) };
+    },
   };
 }

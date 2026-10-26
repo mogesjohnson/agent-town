@@ -70,6 +70,9 @@ export const shapes = {
     needs: z.object({ hunger: need, energy: need, social: need, happiness: need }).partial().strict().optional(),
     durationMinutes: z.number().min(1).max(1440).optional().describe("Override length in game minutes (default 30)."),
   },
+  "memory.forget": {
+    agent: name.optional().describe("Resident to forget. Omit to reset every resident and town event."),
+  },
   "narrator.say": { text: line(280) },
 };
 
