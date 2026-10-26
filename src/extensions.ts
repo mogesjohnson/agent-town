@@ -22,20 +22,37 @@ export class Routes {
   find(method: string, path: string): ((req: IncomingMessage, res: ServerResponse, url: URL) => unknown) | undefined {
     const m = method.toUpperCase();
     const exact = this.table.get(`${m} ${path}`);
-    if (exact) return (req, res, url) => exact(req, res, url, {});
+    if (exact) return guard(exact, {});
     const segs = path.split("/");
     for (const r of this.patterns) {
       if (r.method !== m) continue;
       const params: Params = {};
       const ok = r.parts.every((p, i) => {
         if (p === "*" && i === r.parts.length - 1) return (params["*"] = segs.slice(i).join("/")), segs.length >= i;
-        if (p.startsWith(":")) return segs[i] ? ((params[p.slice(1)] = decodeURIComponent(segs[i])), true) : false;
+        if (p.startsWith(":")) { const v = segs[i] && safeDecode(segs[i]); return v ? ((params[p.slice(1)] = v), true) : false; }
         return p === segs[i];
       }) && (r.parts.at(-1) === "*" || segs.length === r.parts.length);
-      if (ok) return (req, res, url) => r.handler(req, res, url, params);
+      if (ok) return guard(r.handler, params);
     }
     return undefined;
   }
+}
+
+/** Decode a path segment; malformed encoding (e.g. %E0) counts as no match. */
+function safeDecode(seg: string): string | undefined {
+  try { return decodeURIComponent(seg); } catch { return undefined; }
+}
+
+/** Run an extension handler so a sync throw or rejected promise answers 500 instead of crashing the server. */
+function guard(h: Handler, params: Params) {
+  return (req: IncomingMessage, res: ServerResponse, url: URL) => {
+    const fail = (e: unknown) => {
+      console.error(`[ext] ${req.method} ${url.pathname} failed: ${(e as Error)?.message ?? e}`);
+      if (!res.headersSent) res.writeHead(500, { "content-type": "application/json" });
+      if (!res.writableEnded) res.end(JSON.stringify({ error: "extension error" }));
+    };
+    try { const r = h(req, res, url, params); return r instanceof Promise ? r.catch(fail) : r; } catch (e) { fail(e); }
+  };
 }
 
 export const bus = new EventEmitter();
