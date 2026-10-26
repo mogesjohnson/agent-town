@@ -13,7 +13,7 @@ export class Clock {
 }
 
 export interface Job { agent: string; place: string; role: string; title: string }
-export const isOpen = (p: Place, hour: number) => hour >= p.hours.open && hour < p.hours.close;
+export const isOpen = (p: Place, hour: number) => !p.detached && hour >= p.hours.open && hour < p.hours.close;
 const inside = (p: Place, x: number, y: number, pad = 0) => {
   const r = rectOf(p);
   return x >= r.x - pad && x < r.x + r.w + pad && y >= r.y - pad && y < r.y + r.h + pad;

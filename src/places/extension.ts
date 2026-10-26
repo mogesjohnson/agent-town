@@ -1,7 +1,8 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Town } from "../sim.js";
 import { loadCatalog, type Place } from "./catalog.js";
-import { followAnchors } from "./anchors.js";
+import { type Building, followAnchors } from "./anchors.js";
+import { LANDMARKS } from "../sim.js";
 import { assignJobs, Clock, endShifts, free, isOpen, type Job, promptLines, retarget, type Shifts, workTick, WORKING } from "./jobs.js";
 import { EnabledStore } from "./store.js";
 
@@ -12,12 +13,13 @@ interface Ctx {
   on(event: string, fn: (d: unknown) => void): void;
   promptHooks: ((prompt: string, info: { agent: string; partner: string }) => string)[];
   chattyStatuses?: Set<string>; // from #15 83f7542; absent on older loaders
+  config?: { port?: number };
 }
 
 /** Renderer-agnostic view of one place, in map tiles (origin top-left, same grid as agents). */
 export interface PlaceView {
   id: string; name: string; type: string; sign: string; color: string; anchor?: string;
-  x: number; y: number; w: number; h: number; enabled: boolean; open: boolean;
+  x: number; y: number; w: number; h: number; enabled: boolean; open: boolean; detached: boolean;
   hours: Place["hours"]; workers: { agent: string; role: string }[];
 }
 
@@ -51,16 +53,29 @@ export function register(ctx: Ctx) {
     console.log(`[places] jobs: ${jobs.map((j) => `${j.agent}=${j.role}@${j.place}`).join(", ") || "none"}`);
   };
   // Called from state() too, so the broadcast right after a map edit already shows the new spot.
+  let buildings: Building[] | undefined, seen = "", reading = false;
   const follow = () => {
-    for (const id of followAnchors(catalog)) {
+    for (const id of followAnchors(catalog, buildings)) {
       const p = catalog.find((c) => c.id === id)!;
-      console.log(`[places] ${id} follows ${p.anchor} to ${p.plot.x},${p.plot.y}`);
-      if (store.isEnabled(id)) retarget(town, jobs, p, clock.hour, shifts);
+      console.log(`[places] ${id} ${p.detached ? `detached: building ${p.anchor} is gone` : `follows ${p.anchor} to ${p.plot.x},${p.plot.y}`}`);
+      if (p.detached) endShifts(town, shifts, (_n, place) => place !== id);
+      else if (store.isEnabled(id)) retarget(town, jobs, p, clock.hour, shifts);
     }
+  };
+  // Every editor edit (load included) rewrites LANDMARKS; then re-read building ids once.
+  const readMap = () => {
+    const sig = JSON.stringify(LANDMARKS);
+    if (sig === seen || reading || !ctx.config?.port) return;
+    seen = sig; reading = true;
+    fetch(`http://127.0.0.1:${ctx.config.port}/api/map`, { signal: AbortSignal.timeout(2_000) })
+      .then((r) => (r.ok ? r.json() : undefined)) // 404 without the editor: match LANDMARKS names
+      .then((m: any) => { buildings = Array.isArray(m?.buildings) ? m.buildings : undefined; })
+      .catch(() => { seen = ""; }) // server not listening yet: retry next tick
+      .finally(() => { reading = false; follow(); });
   };
   const views = (): PlaceView[] => (follow(), catalog).map((p) => ({
     id: p.id, name: p.name, type: p.type, sign: p.sign, color: p.color, anchor: p.anchor,
-    ...p.plot, ...p.footprint, enabled: store.isEnabled(p.id), open: store.isEnabled(p.id) && isOpen(p, clock.hour),
+    ...p.plot, ...p.footprint, enabled: store.isEnabled(p.id), detached: !!p.detached, open: store.isEnabled(p.id) && isOpen(p, clock.hour),
     hours: p.hours, workers: jobs.filter((j) => j.place === p.id).map((j) => ({ agent: j.agent, role: j.title })),
   }));
 
@@ -70,6 +85,7 @@ export function register(ctx: Ctx) {
   ctx.on("tick", () => {
     clock.advance(town.paused);
     refreshJobs();
+    readMap();
     follow();
     if (!town.paused) workTick(town, jobs, enabled(), clock.hour, greeted, shifts);
   });

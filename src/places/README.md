@@ -47,13 +47,12 @@ Only `idle`, `walking` or our own `working` agents are hired, walked or greeted;
 
 ## Moving landmarks (`anchors.ts`)
 
-Anchored places follow their landmark. The map editor (#22) rewrites the sim's `LANDMARKS`
-array in place on every edit (`{ name: building.name ?? building.id, x, y, w, h, color }`).
-Its `map:changed` event goes only to SSE clients, not to the `on()` bus, so each tick (and each
-`state()`) compares `LANDMARKS` with the anchors, matching names case-insensitively. On a change
-the place takes the new `plot`/`footprint`, and open on-duty staff outside it walk there (our
-`working` status is lifted first). Nothing is polled over HTTP. Without the map editor `LANDMARKS`
-never changes, so this does nothing; a removed landmark leaves its place at the last spot.
+Anchors key on the editor's building id (`"Cafe"` is id `cafe`). Every #22 edit, `load` included,
+rewrites the sim's `LANDMARKS` in place (`name ?? id`), so each tick compares it and, on a change,
+re-reads local `GET /api/map` once for ids. The live spot comes from `LANDMARKS`, so the next
+broadcast already shows a move, and open on-duty staff walk there. A removed building detaches
+its place (closed, staff released, hidden on the map) until undo brings the id back. Without the
+editor `GET /api/map` is 404, anchors match `LANDMARKS` names, and nothing ever moves.
 
 ## State (`store.ts`)
 

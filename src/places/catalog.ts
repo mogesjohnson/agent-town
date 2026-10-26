@@ -14,6 +14,8 @@ export interface Place {
   vibe: string; items: string[]; topics: string[]; roles: Role[];
   /** Created over POST /api/places and saved in .runtime/places.json; only these can be deleted. */
   custom?: boolean;
+  /** Runtime only: the anchor building is gone from the map (closed until it comes back). */
+  detached?: boolean;
 }
 
 /** JSON lives in src/ (tsc does not copy it); resolve from dist/places or src/places. */
