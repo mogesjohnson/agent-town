@@ -1,6 +1,7 @@
 import * as THREE from "three";
+import { attachAnimatedResident } from "./town-models.js";
 
-export function createCrowd(scene) {
+export function createCrowd(scene, natural = false) {
   const people = new Map(), geometry = new THREE.BoxGeometry(1, 1, 1);
   const palette = new Map();
   function part(parent, color, x, y, z, w, h, d) {
@@ -51,17 +52,19 @@ export function createCrowd(scene) {
     const shadow = new THREE.Mesh(new THREE.CircleGeometry(0.55, 12),
       new THREE.MeshBasicMaterial({ color: "#344b45", transparent: true, opacity: 0.22, depthWrite: false }));
     shadow.rotation.x = -Math.PI / 2; shadow.position.y = 0.25; root.add(shadow);
-    return { root, body, limbs, shadow, target: new THREE.Vector3(), agent, index };
+    const animation = natural ? attachAnimatedResident(body, coat) : null;
+    animation?.ready.catch((error) => console.warn("Resident model unavailable; using geometric fallback", error));
+    return { root, body, limbs, shadow, animation, target: new THREE.Vector3(), agent, index };
   }
   function update(state) {
     const names = new Set(state.agents.map((a) => a.name));
     for (const [name, p] of people) if (!names.has(name)) {
-      scene.remove(p.root); p.shadow.geometry.dispose(); p.shadow.material.dispose(); people.delete(name);
+      p.animation?.dispose(); scene.remove(p.root); p.shadow.geometry.dispose(); p.shadow.material.dispose(); people.delete(name);
     }
     state.agents.forEach((agent, index) => {
       let p = people.get(agent.name);
       if (p && p.agent.provider !== agent.provider) {
-        scene.remove(p.root); p.shadow.geometry.dispose(); p.shadow.material.dispose();
+        p.animation?.dispose(); scene.remove(p.root); p.shadow.geometry.dispose(); p.shadow.material.dispose();
         people.delete(agent.name); p = null;
       }
       const fresh = !p;
@@ -85,9 +88,10 @@ export function createCrowd(scene) {
         p.body.rotation.y = Math.atan2(delta.x, delta.z);
       }
       const swing = moving ? Math.sin(clock * 13 + p.index) * 0.55 : 0;
+      p.animation?.animate(dt, moving, p.paused);
       p.body.position.y = moving ? Math.abs(Math.sin(clock * 13 + p.index)) * 0.1 : 0;
       for (const { leg, arm, side } of p.limbs) { leg.rotation.x = swing * side; arm.rotation.x = -swing * side; }
     }
   }
-  return { people, update, animate };
+  return { people, update, animate, dispose() { for (const p of people.values()) p.animation?.dispose(); } };
 }

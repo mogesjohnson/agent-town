@@ -11,7 +11,7 @@ export function mountTown(canvas, fallback) {
   let view;
   try { view = createTownView(host); }
   catch (error) { host.remove(); throw error; }
-  const crowd = createCrowd(view.scene), overlays = createOverlays(view, crowd);
+  const crowd = createCrowd(view.scene, view.camera.isPerspectiveCamera), overlays = createOverlays(view, crowd);
   const lighting = createLighting(view, host);
   const explorer = view.camera.isPerspectiveCamera ? createExplorer(view, host) : null;
   let paused = false, disposed = false;
@@ -21,7 +21,7 @@ export function mountTown(canvas, fallback) {
   });
   const dispose = () => {
     if (disposed) return;
-    disposed = true; explorer?.dispose(); lighting.dispose(); view.dispose(); host.remove(); canvas.hidden = false;
+    disposed = true; explorer?.dispose(); crowd.dispose(); lighting.dispose(); view.dispose(); host.remove(); canvas.hidden = false;
   };
   host.querySelector("canvas").addEventListener("webglcontextlost", (event) => {
     event.preventDefault(); dispose(); fallback();
