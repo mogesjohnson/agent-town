@@ -13,11 +13,13 @@ export function attachAnimatedResident(parent, color) {
     model.traverse((object) => {
       if (!object.isMesh) return;
       object.castShadow = object.receiveShadow = true;
-      object.material = [object.material].flat().map((source) => {
+      const original = object.material;
+      const materials = [original].flat().map((source) => {
         const material = source.clone();
         material.color.lerp(new THREE.Color(color), 0.55);
         return material;
       });
+      object.material = Array.isArray(original) ? materials : materials[0];
     });
     const bounds = new THREE.Box3().setFromObject(model);
     const height = bounds.max.y - bounds.min.y;
