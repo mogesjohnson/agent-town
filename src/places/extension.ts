@@ -142,6 +142,12 @@ export function register(ctx: Ctx) {
       place: b.dryRun ? { ...before, x: b.x, y: b.y } : detail(p.id) });
   });
   ctx.routes.add("GET", "/api/places/types", (_req, res) => send(res, 200, { types: typeList(catalog) }));
+  ctx.routes.add("POST", "/api/places/preview", async (req, res) => {
+    const r = buildPlace(await readBody(req), catalog);
+    if (!("place" in r)) return send(res, r.status, { ok: false, error: r.error });
+    const { plot, footprint, roles: _roles, ...p } = r.place;
+    send(res, 200, { ok: true, place: { ...p, ...plot, ...footprint, enabled: true } });
+  });
   ctx.routes.add("POST", "/api/places", async (req, res) => {
     const r = buildPlace(await readBody(req), catalog);
     if (!("place" in r)) return send(res, r.status, { ok: false, error: r.error });

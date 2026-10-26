@@ -62,8 +62,13 @@ try {
   const types = await call("get_place_types");
   const type = types.types.find((t) => t.type === "food")?.type ?? types.types[0].type;
   const args = { id: "mcp-test-bakery", name: "MCP Test Bakery", type, near: { x: 38, y: 1 }, w: 2, h: 2 };
+  for (const dryRun of [true, false]) {
+    await error("add_place", { ...args, near: undefined, x: 39, y: 24, dryRun });
+    await error("add_place", { ...args, near: undefined, x: 18, y: 10, dryRun });
+  }
   const preview = await call("add_place", { ...args, dryRun: true });
   assert.equal(preview.dryRun, true);
+  assert.equal(preview.after.place.id, args.id);
   assert.deepEqual(await call("get_places"), before);
   const created = await call("add_place", args);
   const place = created.after.place;
