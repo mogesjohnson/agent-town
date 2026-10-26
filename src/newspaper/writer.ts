@@ -71,8 +71,8 @@ export function templatePaper(ev: DayEvents, o: WriteOpts): PaperContent {
     body: `${t.who.join(" and ")} ${t.who.length > 1 ? "were" : "was"} back in the news yesterday. Our reporters remain on the case, mostly from the cafe.` }));
   for (const c of convos.slice(0, 3)) {
     const [who, ...rest] = c.lines[0].split(": ");
-    stories.push({ title: `${c.a} and ${c.b} Exchange ${c.lines.length} Remarks`,
-      body: `${c.a} and ${c.b} were seen chatting. Witnesses report ${who} said: "${rest.join(": ")}". Nobody has asked for a correction.` });
+    stories.push({ title: `${c.a} and ${c.b} Exchange ${c.lines.length} Remark${c.lines.length > 1 ? "s" : ""}`,
+      body: `${c.a} and ${c.b} were seen chatting. Witnesses report ${who} said: "${rest.join(": ")}" Nobody has asked for a correction.` });
   }
   if (ev.games.length) stories.push({ title: "Plaza Games Report", body: ev.games.slice(0, 3).join(" ") });
   if (ev.other.length) stories.push({ title: "Around Town", body: ev.other.slice(0, 3).join(". ") });
