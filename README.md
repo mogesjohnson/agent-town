@@ -136,3 +136,14 @@ See `src/hello/extension.ts` and `public/extensions/hello.js`.
 - `GET /events` (SSE): `state`, `say`, `log` events.
 - `GET /api/state`: snapshot plus the last 50 log lines.
 - `POST /api/chat` `{ to: "<name>" | "*", text }`, `POST /api/pause` `{ paused? }`, `POST /api/reload`.
+
+### Token usage
+
+The Token usage panel reports this server session's town agent calls, including input,
+output, the latest turn and the average tokens per completed turn. Provider-reported
+counts and rough text estimates are separate. Ollama supplies reported counts; CLI
+text replies use about one token per four Unicode characters, excluding hidden reasoning,
+tool context and framing. Mock residents consume zero model tokens. Failed calls have
+unknown consumption. Counts reset after a server restart or agent replacement.
+Extension-owned calls (for example newspaper writing) are excluded. These counts do not
+show subscription allowance, a provider invoice or a dollar price.
