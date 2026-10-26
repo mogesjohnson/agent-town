@@ -125,5 +125,6 @@ export function buildNaturalWorld() {
     }
   }));
   const ready = Promise.all(pending);
-  return { root, glow, lamps, labels, ready, dispose() { disposed = true; textures.forEach((t) => t.dispose()); } };
+  return { root, glow, lamps, labels, ready, materials: { plaster, tiles, wood },
+    dispose() { disposed = true; textures.forEach((t) => t.dispose()); } };
 }
