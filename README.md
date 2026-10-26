@@ -1,5 +1,12 @@
 # agent-town
 
+The **Weather** control follows the current season by default; select clear,
+rain, snow, fog, wind or storm for a local preview. Water ripples and foliage
+sway animate with the weather. Pause freezes decorative movement, and reduced
+motion disables particles, sway and ripple animation. No model calls are used.
+World editors can tag rooted objects with `userData.atmosphere = "vegetation"`
+or `"water"`; atmosphere discovers added/removed objects automatically.
+
 The **Styles** tab preserves **Cozy voxel** and **Classic 2D**. The natural style
 adds perspective exploration: choose **Third person · You**, use WASD or arrows,
 Shift to run, drag to look and scroll to zoom. Keyboard movement stops while

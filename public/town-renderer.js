@@ -5,6 +5,7 @@ import { createLighting } from "./town-lighting.js";
 import { createExplorer } from "./town-explorer.js";
 import { createPlaceView } from "./town-place-view.js";
 import { createMapView } from "./town-map-view.js";
+import { createAtmosphere } from "./town-atmosphere.js";
 
 export function mountTown(canvas, fallback) {
   const host = document.createElement("div");
@@ -15,6 +16,7 @@ export function mountTown(canvas, fallback) {
   catch (error) { host.remove(); throw error; }
   const crowd = createCrowd(view.scene, view.camera.isPerspectiveCamera), overlays = createOverlays(view, crowd);
   const lighting = createLighting(view, host);
+  const atmosphere = createAtmosphere(view, host);
   const explorer = view.camera.isPerspectiveCamera ? createExplorer(view, host) : null;
   const places = createPlaceView(view);
   const map = createMapView(view);
@@ -25,10 +27,11 @@ export function mountTown(canvas, fallback) {
   canvas.hidden = true;
   view.onFrame((now) => {
     lighting.animate(now, paused); crowd.animate(now); explorer?.animate(now); places.animate(); map.animate(); overlays.animate(now, paused);
+    atmosphere.animate(now, paused);
   });
   const dispose = () => {
     if (disposed) return;
-    disposed = true; map.dispose(); places.dispose(); explorer?.dispose(); crowd.dispose(); lighting.dispose(); view.dispose(); host.remove(); canvas.hidden = false;
+    disposed = true; atmosphere.dispose(); map.dispose(); places.dispose(); explorer?.dispose(); crowd.dispose(); lighting.dispose(); view.dispose(); host.remove(); canvas.hidden = false;
   };
   host.querySelector("canvas").addEventListener("webglcontextlost", (event) => {
     event.preventDefault(); dispose(); fallback();
