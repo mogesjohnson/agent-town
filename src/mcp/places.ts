@@ -63,7 +63,7 @@ export function placeOps(self: Self): Record<string, Run> {
     for (let y = 0; y + h <= height; y++) for (let x = 0; x + w <= width; x++) {
       const r = { x, y, w, h };
       if (taken.some((t) => overlaps(r, t))) continue;
-      if (m && m.tiles.slice(y, y + h).some((row) => row.slice(x, x + w).includes("water"))) continue;
+      if (m && m.tiles.slice(y, y + h).some((row) => row.slice(x, x + w).some((t) => t === "water" || t === "tree"))) continue;
       spots.push({ x, y, d: Math.hypot(x + w / 2 - target.x, y + h / 2 - target.y) });
     }
     spots.sort((a, b) => a.d - b.d);

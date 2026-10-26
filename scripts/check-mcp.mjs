@@ -66,6 +66,8 @@ try {
   for (const dryRun of [true, false]) {
     await error("add_place", { ...args, near: undefined, x: 39, y: 24, dryRun });
     await error("add_place", { ...args, near: undefined, x: 18, y: 10, dryRun });
+    await error("add_place", { ...args, near: undefined, x: 31, y: 22, dryRun });
+    await error("add_place", { ...args, near: undefined, x: 5, y: 22, dryRun });
   }
   const preview = await call("add_place", { ...args, dryRun: true });
   assert.equal(preview.dryRun, true);
@@ -74,6 +76,10 @@ try {
   const created = await call("add_place", args);
   const place = created.after.place;
   assert.equal(place.id, args.id);
+  for (const dryRun of [true, false]) {
+    await error("move_place", { id: place.id, x: 31, y: 22, dryRun });
+    await error("move_place", { id: place.id, x: 5, y: 22, dryRun });
+  }
   const post = async (path, body) => fetch(`http://127.0.0.1:${config.port}${path}`, {
     method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body),
   });
