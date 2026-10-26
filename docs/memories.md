@@ -11,3 +11,5 @@ Needs-driven intentions may visit a place the resident has been to, or a residen
 The Resident memories panel lists the same compact view. Forget erases one resident. Reset all memories clears the book. Both actions are deliberate.
 
 `get_memories` returns that compact view over MCP. `forget_memories` performs the same erase. A dry run previews it and does not save. The erase cannot be undone.
+
+`node scripts/check-memories.mjs` starts an isolated mock town, watches the SSE `state` event, restarts the process, and reads the same book back through MCP stdio. A missing memory file loads empty. There is no import of older chat logs.
