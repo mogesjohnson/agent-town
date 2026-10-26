@@ -51,6 +51,8 @@ Every view is a resource and a matching read-only tool.
 | `town://scoreboard` | `get_scoreboard` | `GET /api/minigames` (minigames extension) |
 | `town://config` | `get_config` | `GET /api/mcp/info`: config without `account` labels |
 | `town://extensions` | `get_extensions` | server extensions in `dist/` plus `GET /api/extensions` |
+| `town://map` | `get_map` | `GET /api/map` + `/api/map/palette` (map editor): `tiles[y][x]`, buildings, places, version |
+| `town://map_history` | `get_map_history` | `GET /api/map/history?limit=50`: map edits, newest first |
 | `town://changes` | `get_changes` | `GET /api/mcp/changes`: the last 50 changes made through this plugin |
 
 A feature that is not installed yet answers `{ "available": false, "reason": "... HTTP 404" }`
@@ -70,9 +72,18 @@ Every write tool takes an optional `dryRun: true`. A dry run validates the input
 | `trigger_event` | `{ season?, announcement? }`: forces a season (`null` clears it) and/or announces a happening | restores the previous season |
 | `pause_town` / `resume_town` | pauses or resumes the sim | restores the previous state |
 | `narrator_say` | `{ text }`: a Narrator line every agent hears | none (it is a chat line) |
+| `paint_tiles` | `{ tiles: [{ x, y, type }] }`, at most 500, types from the palette | the editor undoes that edit |
+| `place_building` | `{ type, x, y, id?, name? }`, type from the palette (house, shop, cafe, park, library, plaza) | the editor undoes that edit |
+| `move_building` / `remove_building` | `{ id, x, y, name? }` / `{ id }` | the editor undoes that edit |
+| `undo_map_edit` | the map editor's own undo of the latest map edit, by anyone | none |
+| `set_mood` | `{ agent, mood?, needs?, durationMinutes? }`: mood override (`null` clears it), needs 0-100, duration 1-1440 game minutes | restores the needs and override from just before |
 | `undo_last_change` | reverts the newest undoable change from any client; call it again to go further back | |
 
-Example asks: "add a mock agent called Pip who is a cheerful baker", "close the bakery",
+Map edits are tagged `codex` when the MCP client name contains "codex", otherwise `claude`.
+`undo_last_change` refuses (409) to undo a map edit when someone has edited the map since then.
+That keeps it from undoing the later edit. Use `undo_map_edit` to step back through the map yourself.
+
+Example asks: "put a house at 0,22", "paint a road along y = 12", "make Rook hungry", "add a mock agent called Pip who is a cheerful baker", "close the bakery",
 "pause the town", "undo that".
 
 ## Town-side extension
