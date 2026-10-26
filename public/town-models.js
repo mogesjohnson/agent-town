@@ -12,6 +12,7 @@ export function attachAnimatedResident(parent, color) {
     model = clone(gltf.scene);
     model.traverse((object) => {
       if (!object.isMesh) return;
+      object.frustumCulled = false;
       object.castShadow = object.receiveShadow = true;
       const original = object.material;
       const materials = [original].flat().map((source) => {
