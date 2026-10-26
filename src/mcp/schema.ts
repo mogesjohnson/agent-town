@@ -8,6 +8,9 @@ const cell = { x: z.number().int().min(0).max(199), y: z.number().int().min(0).m
 const kind = z.string().regex(/^[a-z][a-z-]{0,19}$/);
 const buildingId = z.string().regex(/^[\w-]{1,32}$/);
 const need = z.number().min(0).max(100);
+const text = (max: number) => z.string().trim().min(1).max(max).regex(/^[\p{L}\p{N} &'.,!?()-]+$/u, "letters, digits, space and & ' . , ! ? ( ) - only");
+const placeId = z.string().regex(/^[a-z][a-z-]{1,30}$/, "lowercase letters and dashes");
+const side = z.number().int().min(1).max(10);
 const monthDay = z.string().regex(/^\d{2}-\d{2}$/, 'use "MM-DD"');
 
 export const shapes = {
@@ -21,6 +24,19 @@ export const shapes = {
     id: z.string().regex(/^[a-z0-9][a-z0-9-]{0,39}$/).describe('Place id from get_places, e.g. "bakery".'),
     enabled: z.boolean().optional().describe("true opens it, false closes it; omit to flip."),
   },
+  "place.add": {
+    type: kind.describe("Place type from get_place_types: civic, fitness, food, fun, outdoor or shop."),
+    name: text(40),
+    x: z.number().int().min(0).max(39).optional().describe("Top-left column on the 40x25 map. Omit x and y to use near."),
+    y: z.number().int().min(0).max(24).optional(),
+    id: placeId.optional().describe("Defaults to a slug of the name."),
+    w: side.optional(), h: side.optional().describe("Footprint; defaults to the type's size."),
+    hours: z.object({ open: z.number().int().min(0).max(23), close: z.number().int().min(1).max(24) }).strict()
+      .refine((t) => t.open < t.close, "need 0 <= open < close <= 24").optional(),
+    vibe: text(80).optional(),
+    items: z.array(text(60)).min(1).max(8).optional(), topics: z.array(text(60)).min(1).max(8).optional(),
+  },
+  "place.remove": { id: placeId.describe("Id of a custom place (built-ins cannot be removed; close them with toggle_place).") },
   "season.upsert": {
     id: z.string().regex(/^[a-z0-9][a-z0-9-]{0,47}$/), name: line(40),
     windows: z.array(z.object({ from: monthDay, to: monthDay })).min(1).max(4),

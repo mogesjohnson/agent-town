@@ -12,6 +12,8 @@ const DEFS: Def[] = [
   { tool: "upsert_agent", op: "agent.upsert", title: "Add or update agent", description: "Add a new agent (provider defaults to mock) or change an existing agent's personality, color or model." },
   { tool: "set_personality", op: "personality.set", title: "Set personality", description: "Replace one agent's personality text (used in its prompts)." },
   { tool: "toggle_place", op: "place.toggle", title: "Open or close a place", description: 'Open (enabled: true) or close (false) a town place such as "bakery"; omit enabled to flip. Ids come from get_places.' },
+  { tool: "add_place", op: "place.add", title: "Add place", description: "Create a custom place (pretend venue) of a type from get_place_types at top-left x, y. Staffed and open right away." },
+  { tool: "remove_place", op: "place.remove", title: "Remove place", description: "Delete a custom place by id (from get_places). Built-in places cannot be removed." },
   { tool: "upsert_season_event", op: "season.upsert", title: "Add or update season event", description: "Save a custom season event (dates, topic hint, visuals) in the town data folder. Activate it with trigger_event." },
   { tool: "trigger_event", op: "event.trigger", title: "Trigger event", description: "Force a season event by id (null clears the override) and/or post a town-wide announcement every agent hears." },
   { tool: "narrator_say", op: "narrator.say", title: "Narrator says", description: "Post a Narrator line to the chat log; every agent hears it. Cannot be undone." },

@@ -4,13 +4,14 @@ import { W, H, type Town } from "../sim.js";
 import type { AgentConfig } from "../types.js";
 import { schemas, type Args, type OpName } from "./schema.js";
 import { featureOps } from "./features.js";
+import { placeOps } from "./places.js";
 import { lastUndoable, readOverlay, record, writeOverlay } from "./store.js";
 
 export class OpError extends Error { constructor(msg: string, public status = 400) { super(msg); } }
 
 export interface Result { before: unknown; after: unknown; revert?: { op: string; args: unknown } }
 export type Run = (args: any, dry: boolean, actor: string) => Promise<Result>;
-export type Self = (path: string, body?: unknown) => Promise<any>;
+export type Self = (path: string, body?: unknown, method?: "DELETE") => Promise<any>;
 type SeasonEvent = Args<"season.upsert">;
 type Active = { custom: string | null; ext: { source: string; id: string | null } | null };
 
@@ -19,8 +20,8 @@ const rnd = (n: number) => Math.floor(Math.random() * n);
 
 export function makeOps(town: Town) {
   let custom: string | null = null; // active custom season event id
-  const self: Self = async (path, body) => {
-    const init = body === undefined ? {} : { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) };
+  const self: Self = async (path, body, method) => {
+    const init = body === undefined ? { method: method ?? "GET" } : { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) };
     const res = await fetch(`http://127.0.0.1:${town.config.port}${path}`, { ...init, signal: AbortSignal.timeout(5_000) });
     const data = await res.json().catch(() => null);
     if (!res.ok || data === null) throw new OpError(`${path}: ${data?.error ?? `not available (HTTP ${res.status})`}`, res.status >= 400 && res.status < 500 ? res.status : 502);
@@ -63,6 +64,7 @@ export function makeOps(town: Town) {
 
   const ops: Record<string, Run> = {
     ...featureOps(self),
+    ...placeOps(self),
     "agent.restore": restoreAgent,
     "agent.upsert": (a: Args<"agent.upsert">, dry) => {
       const cur = find(a.name);
