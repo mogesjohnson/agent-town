@@ -37,9 +37,11 @@ plots overlapping a landmark (unless anchored) or another place.
 
 Role-play only: no tools, files, shell or real work. Only agents whose provider is available are
 hired, keyword matches first, and at most half the town works so someone is left to visit.
-During opening hours an on-duty worker walks to a tile inside its place and greets each nearby
-visitor with a canned line (no model call, 90 s cooldown per pair). Agents held by a minigame
-(cooldown more than 2 min ahead) are left alone.
+During opening hours an on-duty worker walks into its place, gets status `working` (the sim then
+leaves it be) and greets each nearby visitor with a canned line (no model call, 90 s cooldown per
+pair). Shift end, toggle-off or losing the job sets `idle` again, only if it is still `working`.
+Only `idle`, `walking` or our own `working` agents are hired, walked or greeted; any other status
+(e.g. `playing` from another extension) is left alone.
 
 ## State (`store.ts`)
 
