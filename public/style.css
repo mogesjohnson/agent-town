@@ -52,6 +52,11 @@ aside { min-width: 0; }
 #pause, #form button { background: #e4c78e; color: #344c40; border: 0; border-radius: 4px; padding: 7px 12px; cursor: pointer; }
 #input { min-width: 0; background: #f6efdc; color: #35483f; border: 0; border-radius: 4px; padding: 8px; }
 #usage { font-size: 12px; opacity: .8; }
+.style-panel { padding: 10px 16px; background: #243b35; }
+.style-panel summary { cursor: pointer; font-weight: 600; }
+.style-panel button { margin: 8px 8px 0 0; padding: 9px 12px; cursor: pointer;
+  border: 1px solid #718a7b; border-radius: 6px; color: #eee; background: #304a43; }
+.style-panel button[aria-pressed="true"] { border-color: #e4c78e; color: #ffe3ab; }
 @media (max-width: 850px) {
   main { grid-template-columns: minmax(0, 1fr); }
   main > .town-stage { height: 460px; }
