@@ -49,7 +49,7 @@ try {
     window.fixture.view.world.root.traverse((o) => {
       if (o.material?.isMeshPhysicalMaterial) {
         const s = { uniforms: {}, vertexShader: "#include <common>\n#include <begin_vertex>", fragmentShader: "#include <common>\n#include <normal_fragment_maps>" };
-        o.material.onBeforeCompile(s); result = s.fragmentShader.includes("townRippleTime") && !!s.uniforms.townRippleTime;
+        o.material.onBeforeCompile(s); result = result || (s.fragmentShader.includes("townRippleTime") && !!s.uniforms.townRippleTime);
       }
     });
     return result;
