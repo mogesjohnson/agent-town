@@ -12,6 +12,9 @@ export interface Building { id: string; type: string; x: number; y: number; w: n
 export interface MapData { width: number; height: number; tiles: string[][]; buildings: Building[] }
 export interface Edit { editId: string; actor: string; kind: string; summary: string; at: number; undone: boolean; before: MapData }
 
+export type Rect = { x: number; y: number; w: number; h: number };
+const overlaps = (a: Rect, b: Rect) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+
 export class MapError extends Error { constructor(msg: string, public status = 400) { super(msg); } }
 
 const clone = (m: MapData): MapData => JSON.parse(JSON.stringify(m));
@@ -30,6 +33,8 @@ export class TownMap {
   history: Edit[] = [];
   private seq = 0;
   private bseq = 0;
+  /** Footprints owned by other features (e.g. places from #14); edits may not touch them. */
+  constructor(public reserved: () => (Rect & { id: string })[] = () => []) {}
 
   tile(x: number, y: number) { return this.map.tiles[y]?.[x]; }
 
@@ -39,10 +44,8 @@ export class TownMap {
 
   private checkFootprint(b: Building, ignore?: string) {
     if (b.x < 0 || b.y < 0 || b.x + b.w > W || b.y + b.h > H) throw new MapError(`building ${b.id} does not fit at ${b.x},${b.y}`);
-    for (const o of this.map.buildings) {
-      if (o.id === ignore) continue;
-      if (b.x < o.x + o.w && o.x < b.x + b.w && b.y < o.y + o.h && o.y < b.y + b.h) throw new MapError(`overlaps building ${o.id}`, 409);
-    }
+    for (const o of this.map.buildings) if (o.id !== ignore && overlaps(b, o)) throw new MapError(`overlaps building ${o.id}`, 409);
+    for (const r of this.reserved()) if (overlaps(b, r)) throw new MapError(`overlaps place ${r.id}`, 409);
   }
 
   private commit(actor: string, kind: string, summary: string, before: MapData) {
@@ -60,11 +63,14 @@ export class TownMap {
       this.checkCell(t?.x, t?.y);
       if (!TILE_TYPES.includes(t.type)) throw new MapError(`unknown tile type ${t.type}`);
     }
-    const before = clone(this.map);
-    const changed: { x: number; y: number; type: string }[] = [];
-    for (const { x, y, type } of list) if (this.map.tiles[y][x] !== type) { this.map.tiles[y][x] = type; changed.push({ x, y, type }); }
-    const edit = this.commit(actor, "tiles", `painted ${changed.length} tile(s)`, before);
-    return { edit, changed };
+    const before = clone(this.map), reserved = this.reserved();
+    const changed: { x: number; y: number; type: string }[] = [], skipped: { x: number; y: number }[] = [];
+    for (const { x, y, type } of list) {
+      if (reserved.some((r) => overlaps({ x, y, w: 1, h: 1 }, r))) skipped.push({ x, y });
+      else if (this.map.tiles[y][x] !== type) { this.map.tiles[y][x] = type; changed.push({ x, y, type }); }
+    }
+    const edit = changed.length ? this.commit(actor, "tiles", `painted ${changed.length} tile(s)`, before) : null;
+    return { edit, changed, skipped };
   }
 
   private addBuilding(b: any) {

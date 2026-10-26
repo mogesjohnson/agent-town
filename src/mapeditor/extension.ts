@@ -27,7 +27,13 @@ const actorOf = (b: any) => String(b?.actor ?? b?.author ?? "unknown").slice(0, 
 
 /** Map editor: tile/building edits with an undoable, actor-tagged log, over /api/map*. */
 export function register(ctx: Ctx) {
-  const tm = new TownMap();
+  // Places (#14) extend town.state() with { places: { list } }; absent on this base, so optional.
+  const places = (): any[] => {
+    const p = (ctx.town.state() as any).places;
+    return (Array.isArray(p) ? p : p?.list ?? []).filter((x: any) => [x?.x, x?.y, x?.w, x?.h].every(Number.isInteger));
+  };
+  // Anchored places are sim landmarks, i.e. our own buildings, so only the others are reserved.
+  const tm = new TownMap(() => places().filter((p) => !p.anchor));
 
   // The sim walks agents to LANDMARKS, so mirror buildings into it in place.
   const syncSim = () => {
@@ -58,16 +64,18 @@ export function register(ctx: Ctx) {
       }
     });
 
-  route("GET", "/api/map", () => tm.json());
+  route("GET", "/api/map", () => ({
+    ...tm.json(), places: places().map(({ id, name, x, y, w, h, anchor }) => ({ id, name, x, y, w, h, anchor })),
+  }));
   route("GET", "/api/map/palette", () => ({ tiles: TILE_TYPES, buildings: Object.keys(BUILDING_TYPES) }));
   route("GET", "/api/map/history", (_b, url) => {
     const limit = Math.max(1, Math.min(200, Number(url.searchParams.get("limit")) || 50));
     return tm.history.slice(-limit).reverse().map(({ before: _, ...e }) => e);
   });
   route("POST", "/api/map/tiles", (b) => {
-    const actor = actorOf(b), { edit, changed: cells } = tm.setTiles(b.tiles, actor);
-    changed(actor, "tiles", { tiles: cells });
-    return { ok: true, version: tm.version, changed: cells.length, editId: edit.editId };
+    const actor = actorOf(b), { edit, changed: cells, skipped } = tm.setTiles(b.tiles, actor);
+    if (edit) changed(actor, "tiles", { tiles: cells });
+    return { ok: true, version: tm.version, changed: cells.length, skipped, editId: edit?.editId ?? null };
   });
   route("POST", "/api/map/buildings", (b) => {
     const actor = actorOf(b), { edit, building } = tm.building(b, actor);

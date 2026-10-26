@@ -16,7 +16,7 @@ test("paint tiles, log the actor, undo restores", () => {
   const tm = new TownMap();
   const { edit, changed } = tm.setTiles([{ x: 0, y: 0, type: "water" }, { x: 1, y: 0, type: "road" }], "claude");
   assert.equal(changed.length, 2);
-  assert.equal(edit.actor, "claude");
+  assert.equal(edit?.actor, "claude");
   assert.equal(tm.tile(0, 0), "water");
   tm.undo(undefined, "ui");
   assert.equal(tm.tile(0, 0), "grass");
@@ -45,11 +45,20 @@ test("add, move, remove buildings with overlap checks", () => {
   assert.equal(tm.map.buildings.find((b) => b.id === building.id)?.y, 0);
 });
 
+test("reserved place footprints are skipped for tiles and block buildings", () => {
+  const tm = new TownMap(() => [{ id: "bakery", x: 0, y: 0, w: 2, h: 2 }]);
+  const r = tm.setTiles([{ x: 1, y: 1, type: "road" }, { x: 2, y: 2, type: "road" }], "x");
+  assert.deepEqual(r.skipped, [{ x: 1, y: 1 }]);
+  assert.equal(r.changed.length, 1);
+  assert.equal(tm.setTiles([{ x: 0, y: 0, type: "road" }], "x").edit, null);
+  assert.equal(status(() => tm.building({ op: "add", type: "house", x: 1, y: 0 }, "x")), 409);
+});
+
 test("undo by editId only for the latest live edit", () => {
   const tm = new TownMap();
   const a = tm.setTiles([{ x: 0, y: 0, type: "hill" }], "x").edit;
   tm.setTiles([{ x: 1, y: 0, type: "tree" }], "x");
-  assert.equal(status(() => tm.undo(a.editId, "x")), 409);
+  assert.equal(status(() => tm.undo(a?.editId, "x")), 409);
 });
 
 test("load replaces the map, is validated and undoable", () => {
