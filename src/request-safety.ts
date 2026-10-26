@@ -25,14 +25,15 @@ export function checkLocalRequest(req: IncomingMessage) {
 
 /** Reject bad bodies rather than coercing them to an empty command. Drain oversized input. */
 export async function readObject(req: IncomingMessage): Promise<Record<string, unknown>> {
-  let text = "", bytes = 0;
+  const chunks: Buffer[] = [];
+  let bytes = 0;
   for await (const chunk of req) {
     bytes += Buffer.byteLength(chunk);
-    if (bytes <= 10_000) text += chunk.toString();
+    if (bytes <= 10_000) chunks.push(Buffer.from(chunk));
   }
   if (bytes > 10_000) throw new RequestError(413, "request body too large");
   let value: unknown;
-  try { value = JSON.parse(text || "{}"); }
+  try { value = JSON.parse(Buffer.concat(chunks).toString("utf8") || "{}"); }
   catch { throw new RequestError(400, "invalid JSON"); }
   if (!value || typeof value !== "object" || Array.isArray(value))
     throw new RequestError(400, "JSON object required");

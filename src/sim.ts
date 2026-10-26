@@ -36,6 +36,7 @@ export class Town {
   log: { t: number; from: string; to: string; text: string }[] = [];
   usage = { calls: 0, errors: 0, conversations: 0, chars: 0 };
   private callTimes: number[] = [];
+  private activeCalls = new WeakSet<Agent>();
   promptHooks: ((prompt: string, info: { agent: string; partner: string }) => string)[] = [];
 
   constructor(public config: TownConfig, private adapters: Map<string, Adapter>, private emit: Emit) {}
@@ -81,23 +82,24 @@ export class Town {
 
   /** One model turn for an agent, with all safety limits applied. */
   async speak(a: Agent, partner: string, messages: ChatMessage[]): Promise<string | null> {
-    if (this.paused || !a.available) return null;
+    if (this.paused || !a.available || this.activeCalls.has(a)) return null;
     if (a.turns >= this.config.maxTurnsPerAgent) { a.status = "out-of-turns"; return null; }
     if (!this.allowCall()) return null;
     const adapter = this.adapters.get(a.cfg.provider);
     if (!adapter) return null;
+    this.activeCalls.add(a);
     const prev = a.status;
     a.status = "thinking";
     this.broadcastState();
     a.turns++; this.usage.calls++;
     const tokenUsage = a.tokenUsage ??= emptyUsage();
     let reported: TokenCounts | undefined;
-    const request = {
-      system: this.systemPrompt(a, partner), messages, maxTokens: 120,
-      model: a.cfg.model, timeoutMs: this.config.callTimeoutMs,
-      onUsage: (value: TokenCounts) => { reported = value; },
-    };
     try {
+      const request = {
+        system: this.systemPrompt(a, partner), messages, maxTokens: 120,
+        model: a.cfg.model, timeoutMs: this.config.callTimeoutMs,
+        onUsage: (value: TokenCounts) => { reported = value; },
+      };
       const out = await adapter.chat(request);
       recordUsage(tokenUsage, a.cfg.provider, request, out, reported);
       const text = out.replace(/\s+/g, " ").trim().slice(0, this.config.maxOutputChars) || "...";
@@ -110,6 +112,7 @@ export class Town {
       console.error(`[${a.cfg.name}] adapter error: ${(e as Error).message}`);
       return null;
     } finally {
+      this.activeCalls.delete(a);
       a.status = a.turns >= this.config.maxTurnsPerAgent ? "out-of-turns" : prev === "thinking" ? "idle" : prev;
     }
   }
@@ -189,7 +192,7 @@ export class Town {
     const free = this.agents.filter((a) => this.chattyStatuses.has(a.status) && a.cooldownUntil < now);
     for (let i = 0; i < free.length; i++) for (let j = i + 1; j < free.length; j++) {
       const a = free[i], b = free[j];
-      if (a.status === "chatting" || b.status === "chatting") continue;
+      if (!this.chattyStatuses.has(a.status) || !this.chattyStatuses.has(b.status)) continue;
       if (Math.abs(a.x - b.x) + Math.abs(a.y - b.y) <= 4) {
         a.tx = a.x; a.ty = a.y; b.tx = b.x; b.ty = b.y;
         void this.converse(a, b);
