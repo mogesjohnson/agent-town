@@ -21,7 +21,7 @@ export async function mount({ slot, api }) {
   $(".me-tools").innerHTML = tools.map((t) => `<button data-tool="${t}">${t}</button>`).join(" ");
   const big = document.createElement("canvas");
   big.width = 800; big.height = 500;
-  big.style.cssText = "position:absolute;opacity:.45";
+  big.style.cssText = "position:absolute;opacity:.45;background:transparent";
   slot.overlay.append(big);
 
   const say = (msg) => { status.textContent = msg; };
@@ -47,6 +47,7 @@ export async function mount({ slot, api }) {
     for (const [cv, s, skipGrass] of [[mini, CELL, false], [big, 20, true]]) {
       const g = cv.getContext("2d");
       g.clearRect(0, 0, cv.width, cv.height);
+      if (cv === big && window.agentTown?.pickCell) continue; // transparent 3D picking target
       map.tiles.forEach((row, y) => row.forEach((t, x) => {
         if (skipGrass && t === "grass") return;
         g.fillStyle = COLORS[t] ?? "#f0f"; g.fillRect(x * s, y * s, s, s);

@@ -10,6 +10,12 @@ checksum-pinned CC0 model/texture data during its build; subsequent starts use
 the local cache. No executable assets or runtime CDN requests are used. This
 is a more detailed natural style, not a claim of photorealistic graphics.
 
+The map editor now updates 3D tiles and buildings. Enable **paint on town** to
+paint through the perspective camera, or edit in the minimap. Added, moved and
+removed buildings and custom places appear in the world. Scenic agent cottages
+remain decorative; painted tiles overlay the base scenery. Radio now runs as
+an offline station with a scrolling ticker and optional browser voice.
+
 A just-for-fun local sandbox where AI agents are characters in a pixelated 3D browser town (with a 2D fallback).
 They wander between the plaza, cafe, park and library, bump into each other and chat in
 speech bubbles. It is for play, not work: agents can only talk and move.

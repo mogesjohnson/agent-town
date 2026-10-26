@@ -3,7 +3,7 @@ import * as THREE from "three";
 // Places use the same grid conversion as residents, including custom places.
 export function createPlaceView(view) {
   const entries = new Map();
-  const group = new THREE.Group(); view.scene.add(group);
+  const group = new THREE.Group(); view.world.root.add(group);
   function remove(entry) {
     entry.sign.remove(); entry.root.removeFromParent();
     entry.root.traverse((o) => { o.geometry?.dispose(); });
