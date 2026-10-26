@@ -27,6 +27,8 @@ const rnd = (n: number) => Math.floor(Math.random() * n);
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 export class Town {
+  /** Statuses that may still be paired for a conversation. Extensions can add their own (e.g. "working"). */
+  readonly chattyStatuses = new Set<string>(["idle", "walking"]);
   agents: Agent[] = [];
   paused = false;
   log: { t: number; from: string; to: string; text: string }[] = [];
@@ -106,6 +108,7 @@ export class Town {
 
   private async converse(a: Agent, b: Agent) {
     this.usage.conversations++;
+    const before = new Map([[a, a.status], [b, b.status]]);
     a.status = b.status = "chatting";
     a.met[b.cfg.name] = (a.met[b.cfg.name] ?? 0) + 1;
     b.met[a.cfg.name] = (b.met[a.cfg.name] ?? 0) + 1;
@@ -129,7 +132,7 @@ export class Town {
     }
     for (const x of [a, b]) {
       x.cooldownUntil = Date.now() + 20_000;
-      if (x.status === "chatting") x.status = "idle";
+      if (x.status === "chatting") x.status = before.get(x) === "walking" ? "idle" : before.get(x)!;
     }
   }
 
@@ -156,7 +159,7 @@ export class Town {
     const now = Date.now();
     for (const a of this.agents) {
       if (a.bubble && a.bubble.until < now) a.bubble = undefined;
-      if (["chatting", "thinking", "unavailable", "out-of-turns"].includes(a.status)) continue;
+      if (!["idle", "walking", "paused"].includes(a.status)) continue;
       if (this.paused) { a.status = "paused"; continue; }
       if (a.x === a.tx && a.y === a.ty) {
         if (Math.random() < 0.3) {
@@ -175,7 +178,7 @@ export class Town {
   }
 
   private findMeetings(now: number) {
-    const free = this.agents.filter((a) => (a.status === "idle" || a.status === "walking") && a.cooldownUntil < now);
+    const free = this.agents.filter((a) => this.chattyStatuses.has(a.status) && a.cooldownUntil < now);
     for (let i = 0; i < free.length; i++) for (let j = i + 1; j < free.length; j++) {
       const a = free[i], b = free[j];
       if (a.status === "chatting" || b.status === "chatting") continue;
