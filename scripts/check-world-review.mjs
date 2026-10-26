@@ -28,8 +28,11 @@ try {
       glow: window.reviewWorld.world.glow.length };
   });
   const first = await inspect();
+  const savedMap = await (await page.request.get(`${base}/api/map`)).json();
   assert.equal(first.cottages.length, 4); assert.equal(new Set(first.cottages).size, 4);
-  assert.equal(first.ponds.length, 9); assert.equal(first.trees.length, 10); assert.equal(first.glow, 10);
+  assert.equal(first.ponds.length, savedMap.scenery.filter((s) => s.kind === "pond").length);
+  assert.equal(first.trees.length, savedMap.scenery.filter((s) => s.kind === "tree").length);
+  assert.equal(first.glow, 10);
   const label = page.locator('[data-map-building="cottage-claude"]');
   const before = await label.evaluate((e) => e.style.left);
   edit = await post("/api/map/buildings", { op: "move", id: "cottage-claude", x: 0, y: 0, actor: "codex-review" });
