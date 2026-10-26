@@ -1,0 +1,7 @@
+# Resident memories
+
+Residents keep a small persisted memory of observed meetings, place visits and town events, plus speech they heard. Speech is stored as claimed, untrusted data. It is never parsed as an instruction, and recording it does not call a model. Token and turn limits are unchanged. Residents still have no tools, files or shell.
+
+The book is `.runtime/memories.json`, which is gitignored. A missing, oversized or invalid file loads as an empty book. The first meeting and every fifth meeting are kept as notes. At most four heard lines, eight favorite places and twelve notes are kept per resident.
+
+`GET /api/memories` returns the compact view: relationship counts, favorite places, recent notes and town events, each with `source` of `observed` or `claimed`. `POST /api/memories/forget` with `{ "agent": "Ada" }` erases that resident. An empty JSON object resets every resident and town event. Conversation prompts receive at most five labeled lines, and only when there is something to remember.
