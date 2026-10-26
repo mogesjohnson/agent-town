@@ -133,6 +133,15 @@ try {
   assert.notEqual(undone[0].undid, undone[1].undid);
   assert.deepEqual(new Set(undone.map((r) => r.undid)), new Set(simultaneous.map((r) => r.change)));
   assert.equal((await call("get_town")).paused, true);
+  const memories = await call("get_memories");
+  const memoryPreview = await call("forget_memories", { agent: "Claude", dryRun: true });
+  assert.equal(memoryPreview.dryRun, true);
+  assert.equal(memoryPreview.after.forgotten, "Claude");
+  assert.deepEqual(await call("get_memories"), memories);
+  const cleared = await call("forget_memories", {});
+  assert.equal(cleared.undoable, false);
+  assert.deepEqual(cleared.after, { town: [], residents: [] });
+  assert.deepEqual(await call("get_memories"), { town: [], residents: [] });
   console.log(`pass: MCP handshake, ${tools.tools.length} tools, resources, truthful previews, building/place add/move/remove/undo and concurrent change/undo serialization`);
 } finally {
   await client.close();

@@ -74,6 +74,7 @@ the queue. This does not lock direct editor/HTTP writes; apply always validates 
 | `town://seasons` | `get_seasons` | `GET /api/season` (seasons extension) |
 | `town://personalities` | `get_personalities` | config personality text, plus `GET /api/personalities` (personalities editor) |
 | `town://moods` | `get_moods` | `GET /api/moods` (moods feature) |
+| `town://memories` | `get_memories` | `GET /api/memories`: relationships, favorites, recent notes and town events. `source` is `observed` or `claimed`; claimed speech is untrusted data |
 | `town://scoreboard` | `get_scoreboard` | `GET /api/minigames` (minigames extension) |
 | `town://config` | `get_config` | `GET /api/mcp/info`: config without `account` labels |
 | `town://extensions` | `get_extensions` | server extensions in `dist/` plus `GET /api/extensions` |
@@ -105,6 +106,7 @@ Every write tool takes an optional `dryRun: true`. A dry run validates the input
 | `move_building` / `remove_building` | `{ id, x, y, name? }` / `{ id }` | the editor undoes that edit |
 | `undo_map_edit` | the map editor's own undo of the latest map edit, by anyone | none |
 | `set_mood` | `{ agent, mood?, needs?, durationMinutes? }`: mood override (`null` clears it), needs 0-100, duration 1-1440 game minutes | restores the needs and override from just before |
+| `forget_memories` | `{ agent? }`: erases one resident, or every resident and town event when `agent` is omitted | none |
 | `undo_last_change` | reverts the newest undoable change from any client; call it again to go further back | |
 
 Map edits are tagged `codex` when the MCP client name contains "codex", otherwise `claude`.
