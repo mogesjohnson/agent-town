@@ -4,9 +4,10 @@ import { loadCatalog, type Place } from "./catalog.js";
 import { type Building, followAnchors } from "./anchors.js";
 import { LANDMARKS } from "../sim.js";
 import { assignJobs, Clock, endShifts, free, isOpen, type Job, promptLines, retarget, type Shifts, workTick, WORKING } from "./jobs.js";
+import { acceptSaved, buildPlace, typeList } from "./custom.js";
 import { EnabledStore } from "./store.js";
 
-type Handler = (req: IncomingMessage, res: ServerResponse, url: URL) => unknown;
+type Handler = (req: IncomingMessage, res: ServerResponse, url: URL, params: Record<string, string>) => unknown;
 interface Ctx {
   town: Town;
   routes: { add(method: string, path: string, h: Handler): void };
@@ -19,7 +20,7 @@ interface Ctx {
 /** Renderer-agnostic view of one place, in map tiles (origin top-left, same grid as agents). */
 export interface PlaceView {
   id: string; name: string; type: string; sign: string; color: string; anchor?: string;
-  x: number; y: number; w: number; h: number; enabled: boolean; open: boolean; detached: boolean;
+  x: number; y: number; w: number; h: number; enabled: boolean; open: boolean; detached: boolean; custom: boolean;
   hours: Place["hours"]; workers: { agent: string; role: string }[];
 }
 
@@ -37,10 +38,12 @@ export function register(ctx: Ctx) {
   const { town } = ctx;
   ctx.chattyStatuses?.add(WORKING); // on-shift staff can still chat with visitors, using the job prompt
   const catalog = loadCatalog();
-  const store = new EnabledStore(catalog.map((p) => p.id));
+  const store = new EnabledStore(catalog.map((p) => p.id), undefined, (raw) => acceptSaved(raw, catalog));
+  catalog.push(...store.custom);
   const clock = new Clock(), greeted = new Map<string, number>(), shifts: Shifts = new Map();
   let jobs: Job[] = [], signature = "";
-  const enabled = () => catalog.filter((p) => store.isEnabled(p.id));
+  // Custom places first, so a new place gets staff (still at most half the town works).
+  const enabled = () => catalog.filter((p) => store.isEnabled(p.id)).sort((a, b) => Number(!!b.custom) - Number(!!a.custom));
   const refreshJobs = () => {
     // Re-hire only when availability or toggles change, not on every status flip.
     const sig = town.agents.filter((a) => a.available).map((a) => a.cfg.name).join(",") + "|" + store.enabledIds().join(",");
@@ -75,7 +78,7 @@ export function register(ctx: Ctx) {
   };
   const views = (): PlaceView[] => (follow(), catalog).map((p) => ({
     id: p.id, name: p.name, type: p.type, sign: p.sign, color: p.color, anchor: p.anchor,
-    ...p.plot, ...p.footprint, enabled: store.isEnabled(p.id), detached: !!p.detached, open: store.isEnabled(p.id) && isOpen(p, clock.hour),
+    ...p.plot, ...p.footprint, enabled: store.isEnabled(p.id), detached: !!p.detached, custom: !!p.custom, open: store.isEnabled(p.id) && isOpen(p, clock.hour),
     hours: p.hours, workers: jobs.filter((j) => j.place === p.id).map((j) => ({ agent: j.agent, role: j.title })),
   }));
 
@@ -111,6 +114,32 @@ export function register(ctx: Ctx) {
     refreshJobs();
     town.broadcastState();
     send(res, 200, { ok: true, id, enabled: store.isEnabled(id) });
+  });
+  const detail = (id: string) => {
+    const v = views().find((x) => x.id === id)!, p = catalog.find((c) => c.id === id)!;
+    return { ...v, vibe: p.vibe, items: p.items, topics: p.topics };
+  };
+  ctx.routes.add("GET", "/api/places/types", (_req, res) => send(res, 200, { types: typeList(catalog) }));
+  ctx.routes.add("POST", "/api/places", async (req, res) => {
+    const r = buildPlace(await readBody(req), catalog);
+    if (!("place" in r)) return send(res, r.status, { ok: false, error: r.error });
+    catalog.push(r.place);
+    store.addCustom(r.place);
+    refreshJobs();
+    town.broadcastState();
+    console.log(`[places] created ${r.place.id} at ${r.place.plot.x},${r.place.plot.y}`);
+    send(res, 201, { ok: true, place: detail(r.place.id) });
+  });
+  ctx.routes.add("DELETE", "/api/places/:id", (_req, res, _url, params) => {
+    const p = catalog.find((c) => c.id === params.id);
+    if (!p) return send(res, 404, { ok: false, error: "unknown place" });
+    if (!p.custom) return send(res, 403, { ok: false, error: "built-in places cannot be deleted" });
+    catalog.splice(catalog.indexOf(p), 1);
+    store.removeCustom(p.id);
+    refreshJobs(); // its jobs go; endShifts sets idle only if still working
+    town.broadcastState();
+    console.log(`[places] deleted ${p.id}`);
+    send(res, 200, { ok: true, id: p.id });
   });
   console.log(`[places] ${catalog.length} places, ${store.enabledIds().length} enabled`);
 }
