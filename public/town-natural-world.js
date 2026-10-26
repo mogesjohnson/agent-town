@@ -112,11 +112,15 @@ export function buildNaturalWorld() {
       scene.traverse((o) => { o.geometry?.dispose(); for (const m of [o.material].flat().filter(Boolean)) m.dispose(); });
       textures.forEach((t) => t.dispose()); return;
     }
-    const bounds = new THREE.Box3().setFromObject(scene), height = bounds.max.y - bounds.min.y;
+    // This asset contains three alternative saplings, not one combined tree.
+    const variants = scene.children;
     const positions = [[-18, 12], [-10, 14], [0, 14], [9, 14], [19, 12], [-19, -5], [19, -5], [-20, -14], [0, -16], [20, -14]];
     for (const [i, [x, z]] of positions.entries()) {
-      const tree = scene.clone(true), scale = (5.5 + i % 3) / height;
-      tree.scale.setScalar(scale); tree.position.set(x, -bounds.min.y * scale, z);
+      const tree = variants[i % variants.length].clone(true);
+      tree.position.set(0, 0, 0);
+      const bounds = new THREE.Box3().setFromObject(tree), center = bounds.getCenter(new THREE.Vector3());
+      const scale = (5.5 + i % 3) / (bounds.max.y - bounds.min.y);
+      tree.scale.setScalar(scale); tree.position.set(x - center.x * scale, -bounds.min.y * scale, z - center.z * scale);
       tree.rotation.y = i * 2.4; root.add(tree);
     }
   }));
