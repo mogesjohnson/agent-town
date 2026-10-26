@@ -1,3 +1,4 @@
+import { emptyUsage, recordUsage, TokenCounts } from "./token-usage.js";
 import { Adapter, AgentConfig, AgentStatus, ChatMessage, TownConfig } from "./types.js";
 
 export const W = 40, H = 25;
@@ -13,6 +14,7 @@ export interface Agent {
   x: number; y: number; tx: number; ty: number;
   status: AgentStatus;
   turns: number;
+  tokenUsage?: ReturnType<typeof emptyUsage>;
   cooldownUntil: number;
   heard: string[];
   met: Record<string, number>;
@@ -44,7 +46,7 @@ export class Town {
       const x = rnd(W), y = rnd(H);
       return {
         cfg, x, y, tx: x, ty: y, status: a.available ? "idle" : "unavailable", turns: 0,
-        cooldownUntil: 0, heard: [], met: {}, available: a.available,
+        tokenUsage: emptyUsage(), cooldownUntil: 0, heard: [], met: {}, available: a.available,
         account: cfg.account ?? a.account,
       } as Agent;
     });
@@ -88,17 +90,23 @@ export class Town {
     a.status = "thinking";
     this.broadcastState();
     a.turns++; this.usage.calls++;
+    const tokenUsage = a.tokenUsage ??= emptyUsage();
+    let reported: TokenCounts | undefined;
+    const request = {
+      system: this.systemPrompt(a, partner), messages, maxTokens: 120,
+      model: a.cfg.model, timeoutMs: this.config.callTimeoutMs,
+      onUsage: (value: TokenCounts) => { reported = value; },
+    };
     try {
-      const out = await adapter.chat({
-        system: this.systemPrompt(a, partner), messages,
-        maxTokens: 120, model: a.cfg.model, timeoutMs: this.config.callTimeoutMs,
-      });
+      const out = await adapter.chat(request);
+      recordUsage(tokenUsage, a.cfg.provider, request, out, reported);
       const text = out.replace(/\s+/g, " ").trim().slice(0, this.config.maxOutputChars) || "...";
       this.usage.chars += text.length;
       a.bubble = { text, until: Date.now() + 6000 };
       return text;
     } catch (e) {
       this.usage.errors++;
+      tokenUsage.failedTurns++;
       console.error(`[${a.cfg.name}] adapter error: ${(e as Error).message}`);
       return null;
     } finally {
@@ -198,8 +206,9 @@ export class Town {
       agents: this.agents.map((a) => ({
         name: a.cfg.name, color: a.cfg.color, provider: a.cfg.provider, model: a.cfg.model ?? "default",
         account: a.account ?? "-", x: a.x, y: a.y, status: a.status, turns: a.turns,
-        bubble: a.bubble?.text, met: a.met,
+        bubble: a.bubble?.text, met: a.met, tokenUsage: a.tokenUsage ?? emptyUsage(),
       })),
     };
   }
 }
+

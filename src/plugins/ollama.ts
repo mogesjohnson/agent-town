@@ -23,7 +23,10 @@ export const ollama: Adapter = {
       }),
     });
     if (!r.ok) throw new Error(`ollama ${r.status}`);
-    const j = (await r.json()) as { message?: { content?: string } };
+    const j = (await r.json()) as { message?: { content?: string }; prompt_eval_count?: number; eval_count?: number };
+    if (j.prompt_eval_count !== undefined && j.eval_count !== undefined)
+      req.onUsage?.({ inputTokens: j.prompt_eval_count, outputTokens: j.eval_count });
     return j.message?.content ?? "";
   },
 };
+
