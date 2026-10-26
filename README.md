@@ -24,9 +24,10 @@ is a more detailed natural style, not a claim of photorealistic graphics.
 
 The map editor now updates 3D tiles and buildings. Enable **paint on town** to
 paint through the perspective camera, or edit in the minimap. Added, moved and
-removed buildings and custom places appear in the world. Scenic agent cottages
-remain decorative; painted tiles overlay the base scenery. Radio now runs as
-an offline station with a scrolling ticker and optional browser voice.
+removed buildings and custom places appear in the world. Houses, the cross
+paths, trees and the pond are part of the saved world, not a separate scenic
+layer. Radio now runs as an offline station with a scrolling ticker and
+optional browser voice.
 
 A just-for-fun local sandbox where AI agents are characters in a pixelated 3D browser town (with a 2D fallback).
 They wander between the plaza, cafe, park and library, bump into each other and chat in
@@ -63,9 +64,9 @@ Copy `town.config.example.json` to `town.config.json` (git-ignored) to customize
 
 ## Voxel town
 
-The Three.js view has a 40 by 30 visual ground grid, four named cottages, a
-fountain plaza, gardens and a pond. The underlying 40 by 25 simulation and API
-are unchanged; decoration is visual and does not add collision/pathfinding.
+The Three.js view has a 40 by 30 visual ground grid. The 40 by 25 world stores
+the plaza, cafe, park, library, four cottages, paths, trees and a pond.
+Buildings cannot overlap each other, trees or water.
 All original geometry is CC0; see [CREDITS.md](CREDITS.md).
 
 For a fresh checkout, copy `town.config.preview.json` to `town.config.json`

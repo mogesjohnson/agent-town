@@ -61,6 +61,36 @@ test("undo by editId only for the latest live edit", () => {
   assert.equal(status(() => tm.undo(a?.editId, "x")), 409);
 });
 
+test("default world records houses, paths, trees and the pond", () => {
+  const tm = new TownMap();
+  const grass = tm.map.tiles.flat().filter((t) => t === "grass").length;
+  assert.equal(grass, 893);
+  assert.equal(tm.map.worldVersion, 1);
+  assert.ok(tm.map.buildings.some((b) => b.id === "cottage-claude" && b.type === "house"));
+  assert.equal(tm.map.scenery.find((s) => s.id === "tree-0-4")?.atmosphere, "vegetation");
+  assert.equal(tm.map.scenery.find((s) => s.id === "pond-31-22")?.atmosphere, "water");
+  assert.equal(tm.map.scenery.filter((s) => s.kind === "path").length, 88);
+  assert.equal(status(() => tm.building({ op: "add", type: "house", x: 31, y: 22 }, "x")), 409);
+  const painted = tm.setTiles([{ x: 18, y: 10, type: "water" }], "x");
+  assert.deepEqual(painted.skipped, [{ x: 18, y: 10 }]);
+});
+
+test("legacy all-grass towns gain the default world once", () => {
+  const tm = new TownMap();
+  const legacy = { width: tm.map.width, height: tm.map.height, tiles: tm.map.tiles.map((row) => row.map(() => "grass")),
+    buildings: tm.map.buildings.filter((b) => ["cafe", "library", "park", "plaza"].includes(b.id)) };
+  tm.load(legacy, "ui");
+  assert.ok(tm.map.buildings.some((b) => b.id === "cottage-grok"));
+  assert.equal(tm.map.tiles[12][0], "road");
+  const edited = tm.json();
+  edited.worldVersion = undefined as unknown as number;
+  edited.tiles[0][1] = "hill";
+  edited.buildings = edited.buildings.filter((b) => b.id === "plaza");
+  tm.load(edited, "ui");
+  assert.ok(!tm.map.buildings.some((b) => b.id.startsWith("cottage-")));
+  assert.equal(tm.map.tiles[0][1], "hill");
+});
+
 test("load replaces the map, is validated and undoable", () => {
   const tm = new TownMap();
   const saved = tm.json();
