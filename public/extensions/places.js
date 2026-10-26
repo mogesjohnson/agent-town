@@ -19,13 +19,13 @@ export async function mount({ slot, api }) {
       return `<li style="padding:3px 0;border-bottom:1px solid #3a3e48" title="${esc(d ? d.vibe : "")}">
         <label><input type="checkbox" data-id="${esc(p.id)}" ${p.enabled ? "checked" : ""}>
         <span style="display:inline-block;width:8px;height:8px;background:${esc(p.color)}"></span> <b>${esc(p.name)}</b></label>
-        <span style="float:right;opacity:.8">${p.enabled ? (p.open ? "open" : "closed") : "off"} · ${hrs(p.hours)}</span>
+        <span style="float:right;opacity:.8">${p.detached ? "building gone" : p.enabled ? (p.open ? "open" : "closed") : "off"} · ${hrs(p.hours)}</span>
         <div style="opacity:.7;font-size:11px">${staff ? `staff: ${staff}` : "no staff"}${d ? ` · ${esc(d.items.slice(0, 3).join(", "))}` : ""}</div></li>`;
     }).join("");
     const cv = document.getElementById("town");
     const tw = (cv?.clientWidth || overlay.clientWidth) / w, th = (cv?.clientHeight || overlay.clientHeight) / h;
     const ox = cv?.offsetLeft ?? 0, oy = cv?.offsetTop ?? 0;
-    overlay.innerHTML = list.filter((p) => p.enabled).map((p) => {
+    overlay.innerHTML = list.filter((p) => p.enabled && !p.detached).map((p) => {
       const box = `left:${ox + p.x * tw}px;top:${oy + p.y * th}px;width:${p.w * tw}px;height:${p.h * th}px`;
       const fill = p.anchor ? "" : `background:${esc(p.color)};opacity:${p.open ? 0.85 : 0.45};border:2px solid #333;border-radius:3px;`;
       return `<div style="position:absolute;${box};${fill}"></div>
