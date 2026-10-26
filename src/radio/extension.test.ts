@@ -1,7 +1,11 @@
 import { test } from "node:test";
 import { strict as assert } from "node:assert";
-import { RadioStation } from "./extension.js";
+import { RadioStation, register } from "./extension.js";
 import { readRadioConfig } from "./types.js";
+import { Routes } from "../extensions.js";
+import { Town } from "../sim.js";
+import { DEFAULT_CONFIG } from "../types.js";
+import type { ServerResponse } from "node:http";
 
 const brief = { agents: ["Ada", "Ben"], events: [
   { t: 1, from: "You", to: "All", text: "private visitor message" },
@@ -31,4 +35,26 @@ test("disabled radio creates no segments", () => {
   const station = new RadioStation(readRadioConfig({ enabled: false }), 0);
   assert.equal(station.tick(100_000, false, brief), undefined);
   assert.equal(station.segments.length, 0);
+});
+test("extension exposes its generated station over GET and SSE without model calls", () => {
+  const town = new Town({ ...DEFAULT_CONFIG, agents: [] }, new Map(), () => {});
+  town.log = brief.events;
+  const routes = new Routes(), listeners = new Map<string, (data: unknown) => void>();
+  const sent: string[] = [];
+  register({ town, routes, config: {}, clients: new Set([{ write: (s: string) => sent.push(s) } as unknown as ServerResponse]),
+    on: (event, fn) => listeners.set(event, fn) });
+  town.paused = true;
+  listeners.get("tick")?.(town);
+  assert.equal(sent.length, 0);
+  town.paused = false;
+  listeners.get("tick")?.(town);
+  assert.match(sent[0], /^event: radio\ndata: /);
+  const payload = JSON.parse(sent[0].split("\n")[1].slice(6));
+  let result = "";
+  const res = { writeHead: () => {}, end: (s: string) => { result = s; } } as unknown as ServerResponse;
+  routes.find("GET", "/api/radio")!({} as never, res, new URL("http://localhost/api/radio"));
+  assert.deepEqual(JSON.parse(result), payload);
+  assert.equal(payload.segments.length, 1);
+  assert.equal(payload.mode, "offline");
+  assert.equal(town.usage.calls, 0);
 });
