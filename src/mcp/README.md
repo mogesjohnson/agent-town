@@ -51,15 +51,43 @@ Every view is a resource and a matching read-only tool.
 | `town://scoreboard` | `get_scoreboard` | `GET /api/minigames` (minigames extension) |
 | `town://config` | `get_config` | `GET /api/mcp/info`: config without `account` labels |
 | `town://extensions` | `get_extensions` | server extensions in `dist/` plus `GET /api/extensions` |
+| `town://changes` | `get_changes` | `GET /api/mcp/changes`: the last 50 changes made through this plugin |
 
 A feature that is not installed yet answers `{ "available": false, "reason": "... HTTP 404" }`
 for its part. Nothing crashes.
+
+## Write tools
+
+Every write tool takes an optional `dryRun: true`. A dry run validates the input and returns
+`before` and `after` without changing anything or writing to the log.
+
+| Tool | Does | Undo |
+| --- | --- | --- |
+| `upsert_agent` | `{ name, personality?, color?, provider?, model? }`: adds an agent (default provider `mock`) or updates one | restores it, or removes an added agent |
+| `set_personality` | `{ agent, personality }`: replaces the prompt personality | restores the old text |
+| `toggle_place` | `{ id, enabled? }`: opens or closes a place, such as `bakery`, via `POST /api/places/toggle` | toggles it back |
+| `upsert_season_event` | a full season event (`id, name, windows, priority, topicHint, visuals`), saved to town data | restores or removes it |
+| `trigger_event` | `{ season?, announcement? }`: forces a season (`null` clears it) and/or announces a happening | restores the previous season |
+| `pause_town` / `resume_town` | pauses or resumes the sim | restores the previous state |
+| `narrator_say` | `{ text }`: a Narrator line every agent hears | none (it is a chat line) |
+| `undo_last_change` | reverts the newest undoable change from any client; call it again to go further back | |
+
+Example asks: "add a mock agent called Pip who is a cheerful baker", "close the bakery",
+"pause the town", "undo that".
 
 ## Town-side extension
 
 `src/mcp/extension.ts` is loaded by the shared extension loader (`src/extensions.ts`) and adds:
 
 - `GET /api/mcp/info`: config (no account labels) and the server extension list.
+- `POST /api/mcp/change` `{ op, args, actor, dryRun? }`: validates and applies one op, then logs it.
+- `POST /api/mcp/undo` `{ actor, dryRun? }` and `GET /api/mcp/changes?limit=N`.
+
+Agents and custom season events added this way live in `.runtime/town-data/`
+(`agents.json`, `seasons.json`), which is git-ignored, and are re-applied after `/api/reload`.
+Every change is appended to `.runtime/town-data/changes.jsonl` with the MCP client name as `actor`.
+Custom season events steer talk through a prompt hook while they are active. They do not
+appear in `/api/season`, because the seasons extension has no add-event route.
 
 Its routes answer only requests whose `Host` is loopback, to block DNS rebinding.
 
@@ -67,3 +95,6 @@ Its routes answer only requests whose `Host` is loopback, to block DNS rebinding
 
 - Loopback only, on both ends: the MCP server refuses non-loopback hosts. Fetches use a 5 s timeout and no redirects.
 - No shell, no `child_process` and no file access in the MCP process.
+- Writes touch only in-memory town state and fixed JSON files in `.runtime/town-data/`. They never touch source files or paths taken from input.
+- Input is validated by zod twice (tool and route), with length caps, hex colors and bounded numbers. Bodies are capped at 16 KB.
+- POST routes need `content-type: application/json`, so a web page cannot call them without a CORS preflight, and the town never approves one.
