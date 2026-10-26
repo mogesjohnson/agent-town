@@ -23,7 +23,7 @@ export function makeOps(town: Town) {
     const init = body === undefined ? {} : { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) };
     const res = await fetch(`http://127.0.0.1:${town.config.port}${path}`, { ...init, signal: AbortSignal.timeout(5_000) });
     const data = await res.json().catch(() => null);
-    if (!res.ok || data === null) throw new OpError(`${path}: ${data?.error ?? `not available (HTTP ${res.status})`}`, res.status === 404 ? 404 : 502);
+    if (!res.ok || data === null) throw new OpError(`${path}: ${data?.error ?? `not available (HTTP ${res.status})`}`, res.status >= 400 && res.status < 500 ? res.status : 502);
     return data;
   };
   const find = (name: string) => town.agents.find((a) => a.cfg.name.toLowerCase() === name.toLowerCase());
