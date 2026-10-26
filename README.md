@@ -95,6 +95,13 @@ Add a file in `src/plugins/`, export the adapter and register it in `src/plugins
 | `adapters` | all true | enable or disable providers |
 | `agents[]` | | `name`, `personality`, `color`, `provider`, optional `model`, `account` |
 
+## Extensions
+
+New features never edit `src/server.ts` or `public/index.html`. Add `src/<feature>/extension.ts`
+exporting `register({ town, clients, config, routes, on, promptHooks })`, and/or
+`public/extensions/<feature>.js` exporting `mount({ slot: { panel, overlay }, api: { get, post, on } })`.
+See `src/hello/extension.ts` and `public/extensions/hello.js`.
+
 ## Protocol
 
 - `GET /events` (SSE): `state`, `say`, `log` events.
