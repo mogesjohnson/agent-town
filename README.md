@@ -7,6 +7,11 @@ motion disables particles, sway and ripple animation. No model calls are used.
 World editors can tag rooted objects with `userData.atmosphere = "vegetation"`
 or `"water"`; atmosphere discovers added/removed objects automatically.
 
+**Enable sound** opts into quiet synthesized wind, rain, daytime birds and
+nighttime crickets. Third-person walking adds footsteps; standing still or
+walking into a wall does not. Sound mutes while paused, hidden, or at zero
+volume. It starts muted on every page load and uses no recordings or model calls.
+
 The **Styles** tab preserves **Cozy voxel** and **Classic 2D**. The natural style
 adds perspective exploration: choose **Third person · You**, use WASD or arrows,
 Shift to run, drag to look and scroll to zoom. Keyboard movement stops while
