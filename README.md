@@ -56,6 +56,12 @@ open findings on PRs #2, #3 and #5. Real providers were not exercised in rendere
 
 Build copies pinned Three.js modules locally. No runtime CDN or model downloads.
 
+Browser regression check (with the server running and an existing Playwright
+installation): `node scripts/check-town.mjs`. Set `PLAYWRIGHT_MODULE` to its module
+path if it is outside this checkout; `TOWN_URL` overrides the localhost URL and
+`BROWSER_CHANNEL` selects an installed browser (default: msedge). The script
+injects deterministic SSE and intercepts chat/pause requests, so it invokes no providers.
+
 ## Using the UI
 
 - **Lobby** lists every agent with provider/model, account label, status
