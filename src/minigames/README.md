@@ -8,7 +8,8 @@ No existing file is edited.
 
 - `extension.ts` exports `register({ town, clients, routes })`, which `src/extensions.ts`
   loads from `dist/minigames/extension.js` at startup. It calls
-  `registerMinigames(town, emit, routes?)` (in `index.ts`) with an SSE `emit` over `clients`.
+  `registerMinigames(town, emit, routes?, on?)` (in `index.ts`) with an SSE `emit` over
+  `clients`. The host loop runs on the `tick` event; nothing in the sim or server is patched.
 - A host loop runs every few seconds. When the town is not paused and no game is running,
   it picks two or three free agents (idle or walking, not on chat cooldown) and walks them
   to the Plaza. Once they arrive (or after a short timeout) the game starts.
@@ -25,8 +26,7 @@ No existing file is edited.
 - SSE `/events`, event `minigame`: `{ kind, game, players, ... }` where `kind` is
   `gather`, `start`, `round`, `tag`, `answer`, `throw` or `end`.
 - SSE `/events`, event `scoreboard`: the scoreboard snapshot after each game.
-- `state.minigames` (in every `state` event and `/api/state`): current game and scoreboard.
-- `GET /api/minigames` (via `ctx.routes`): the same snapshot as JSON.
+- `GET /api/minigames` (via `ctx.routes`): current game and scoreboard as JSON.
 - `public/extensions/minigames.js` exports `mount({ slot, api })` and draws the current game,
   a short feed and the scoreboard in `slot.panel`. It only reads, so it works with any renderer.
 
