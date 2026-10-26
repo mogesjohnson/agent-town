@@ -13,8 +13,8 @@ No existing file is edited.
 - Every few seconds the host checks: When the town is not paused and no game is running,
   it picks two or three free agents (idle or walking, not on chat cooldown) and walks them
   to the Plaza. Once they arrive (or after a short timeout) the game starts.
-- While playing, agents are marked `chatting` so the sim neither moves them nor starts a
-  conversation. When the game ends they go back to `idle` with a short cooldown.
+- While playing, agents have the custom status `playing`, so the sim neither moves them nor
+  starts a conversation. When the game ends (or aborts) they go back to `idle` with a short cooldown.
 - Games never edit sim files. They only read and set fields on existing agent objects
   (`x`, `y`, `tx`, `ty`, `status`, `cooldownUntil`, `bubble`) and call `town.addLog`.
 - Trivia asks each player through `town.speak`, so the sim's turn budget, rate limit and

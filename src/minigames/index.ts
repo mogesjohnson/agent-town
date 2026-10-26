@@ -28,12 +28,18 @@ export function registerMinigames(town: Town, emit: Emit, routes?: Routes, on?: 
     emit("minigame", ev);
   };
 
+  /** Back to "idle"; if a speak() is in flight it restores "playing" when done, so retry then. */
+  function release(p: Agent, tries = 120) {
+    if (p.status === "playing") p.status = "idle";
+    else if (p.status === "thinking" && tries > 0) setTimeout(() => release(p, tries - 1), 500).unref();
+  }
+
   async function run(game: Game, players: Agent[]) {
     let aborted = false;
     const present = () => players.every((p) => town.agents.includes(p));
     const hold = () => {
       for (const p of players) {
-        if (p.status !== "thinking" && p.status !== "out-of-turns") p.status = "chatting";
+        if (p.status !== "thinking" && p.status !== "out-of-turns") p.status = "playing";
         p.cooldownUntil = Date.now() + 600_000;
       }
     };
@@ -69,11 +75,8 @@ export function registerMinigames(town: Town, emit: Emit, routes?: Routes, on?: 
     } catch (e) {
       event("end", { aborted: true, reason: (e as Error).message });
     } finally {
-      for (const p of players) {
-        if (!town.agents.includes(p)) continue;
-        if (p.status === "chatting") p.status = p.turns >= town.config.maxTurnsPerAgent ? "out-of-turns" : "idle";
-        p.cooldownUntil = Date.now() + COOLDOWN_MS;
-      }
+      // Every player leaves "playing", even after an abort or when one was removed by a reload.
+      for (const p of players) { release(p); p.cooldownUntil = Date.now() + COOLDOWN_MS; }
       if (aborted) console.log("[minigame] aborted");
       current = null;
       nextAt = Date.now() + BETWEEN_GAMES_MS;
