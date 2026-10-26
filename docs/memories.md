@@ -7,3 +7,5 @@ The book is `.runtime/memories.json`, which is gitignored. A missing, oversized 
 `GET /api/memories` returns the compact view: relationship counts, favorite places, recent notes and town events, each with `source` of `observed` or `claimed`. `POST /api/memories/forget` with `{ "agent": "Ada" }` erases that resident. An empty JSON object resets every resident and town event. Conversation prompts receive at most five labeled lines, and only when there is something to remember.
 
 Needs-driven intentions may visit a place the resident has been to, or a resident they have met at least twice. Hunger, low energy and meeting someone new still come first. Remembered speech is not used to choose a destination.
+
+The Resident memories panel lists the same compact view. Forget erases one resident. Reset all memories clears the book. Both actions are deliberate.
