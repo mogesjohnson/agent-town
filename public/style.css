@@ -60,6 +60,9 @@ aside { min-width: 0; }
 .town-stage[data-style="natural"] canvas { image-rendering: auto; }
 .asset-status { position: absolute; left: 12px; top: 55px; padding: 8px;
   background: #20372be6; color: #fff; border-radius: 4px; max-width: 80%; }
+/* Legacy place rectangles/posters have canvas coordinates, not 3D positions. */
+#stage:has(.town-stage) #ext-overlay > [data-ext="places"],
+#stage:has(.town-stage) #ext-overlay > [data-ext="newspaper"] { display: none; }
 .explore-controls { position: absolute; top: 12px; left: 12px; right: 12px;
   display: flex; gap: 10px; align-items: center; color: #fff; font-size: 12px; }
 .explore-controls select, .explore-controls span, .explore-controls output {
