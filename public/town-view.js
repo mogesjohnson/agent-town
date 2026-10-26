@@ -3,17 +3,21 @@ import { OrbitControls } from "/vendor/OrbitControls.js";
 import { buildWorld } from "./town-world.js";
 
 export function createTownView(host) {
+  const smooth = new URLSearchParams(location.search).get("style") === "natural";
+  host.dataset.style = smooth ? "natural" : "voxel";
   const canvas = document.createElement("canvas");
   canvas.setAttribute("aria-label", "3D agent town; drag to orbit, right-drag to pan, scroll to zoom");
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: false });
-  renderer.setPixelRatio(1);
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: smooth });
+  renderer.setPixelRatio(smooth ? Math.min(devicePixelRatio, 1.5) : 1);
+  if (smooth) renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   const scene = new THREE.Scene();
   scene.background = new THREE.Color("#bfd5ce");
   scene.fog = new THREE.Fog("#bfd5ce", 65, 125);
-  const camera = new THREE.OrthographicCamera(-28, 28, 20, -20, 0.1, 180);
+  const camera = smooth ? new THREE.PerspectiveCamera(55, 1, 0.1, 220) :
+    new THREE.OrthographicCamera(-28, 28, 20, -20, 0.1, 180);
   camera.position.set(36, 38, 44);
   const controls = new OrbitControls(camera, canvas);
   controls.target.set(0, 0, -0.5);
@@ -22,6 +26,10 @@ export function createTownView(host) {
   controls.maxPolarAngle = Math.PI / 2.8;
   controls.minAzimuthAngle = -Math.PI / 3;
   controls.maxAzimuthAngle = Math.PI / 3;
+  if (smooth) {
+    controls.minAzimuthAngle = -Infinity; controls.maxAzimuthAngle = Infinity;
+    controls.minDistance = 3; controls.maxDistance = 75;
+  }
   controls.minZoom = 0.75;
   controls.maxZoom = 2.7;
   controls.screenSpacePanning = false;
@@ -50,11 +58,12 @@ export function createTownView(host) {
     const width = host.clientWidth, height = host.clientHeight;
     if (!width || !height) return;
     // Deliberate low resolution; CSS nearest-neighbour upscale preserves pixels.
-    renderer.setSize(Math.max(1, Math.floor(width / 2)), Math.max(1, Math.floor(height / 2)), false);
+    renderer.setSize(Math.max(1, Math.floor(width / (smooth ? 1 : 2))), Math.max(1, Math.floor(height / (smooth ? 1 : 2))), false);
     const half = 21;
     camera.left = -half * width / height;
     camera.right = half * width / height;
     camera.top = half; camera.bottom = -half;
+    if (smooth) camera.aspect = width / height;
     camera.updateProjectionMatrix();
   }
   const observer = new ResizeObserver(resize);
@@ -69,7 +78,7 @@ export function createTownView(host) {
   function animate(now) {
     if (disposed) return;
     controls.update();
-    const bounded = controls.target.clone().clamp(new THREE.Vector3(-7, 0, -5), new THREE.Vector3(7, 0, 5));
+    const bounded = controls.target.clone().clamp(new THREE.Vector3(smooth ? -19 : -7, 0, smooth ? -14 : -5), new THREE.Vector3(smooth ? 19 : 7, smooth ? 3 : 0, smooth ? 14 : 5));
     camera.position.add(bounded.clone().sub(controls.target));
     controls.target.copy(bounded);
     update(now);
@@ -80,7 +89,7 @@ export function createTownView(host) {
   resize();
   frame = requestAnimationFrame(animate);
   return {
-    scene, world, camera, overlay, project, ambient, sun,
+    scene, world, camera, controls, overlay, project, ambient, sun,
     onFrame(fn) { update = fn; },
     dispose() {
       disposed = true;
