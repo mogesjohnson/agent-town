@@ -10,6 +10,10 @@ Scene objects that atmosphere may animate set `userData.atmosphere` to `water` o
 mesh for a pond cell. Moving an object keeps its id. Removing it removes the
 object from `view.world.root`, which is what `town-atmosphere.js` scans.
 
+Scenery rejects older map versions and ignores late responses after disposal.
+Editable cottages retain shadow casting and registered emissive windows; removing
+a cottage also removes its windows from the lighting registry.
+
 Path, tree, pond and house meshes are created by `town-scenery.js` in the natural
 style. The map overlay does not draw a second copy of those cells or houses.
 Plaza and other venues stay on the map overlay and use `userData.worldId` of

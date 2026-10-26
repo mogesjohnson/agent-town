@@ -40,7 +40,7 @@ export function buildNaturalWorld() {
     item.rotation.x = -Math.PI / 2; item.castShadow = false; return item;
   }
   ground(grass, 0, 0, 120, 120, -0.02);
-  const scenery = createScenery(root, { cobble, plaster, tiles });
+  const scenery = createScenery(root, { cobble, plaster, tiles, glow });
   pending.push((async () => {
     let map;
     try { const response = await fetch("/api/map"); if (response.ok) map = await response.json(); } catch { /* static preview */ }
