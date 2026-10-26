@@ -79,8 +79,14 @@ injects deterministic SSE and intercepts chat/pause requests, so it invokes no p
 - **Chat** has an `All` tab (broadcast to every agent) and one tab per agent; click an agent
   in the lobby to open its tab. Replies show in the tab and as speech bubbles.
 - **Town log** shows agent-to-agent conversations.
+- Chat tabs and the town log retain the latest 200 lines each. Replayed SSE messages
+  after reconnect are shown once; matching text spoken at a different time still appears.
 - **Pause/Resume** stops all model calls and movement.
 - `POST /api/reload` re-reads the config (add or remove agents).
+
+Check reconnects and history limits with `node scripts/check-chat.mjs` using an existing
+Playwright installation (`PLAYWRIGHT_MODULE` if needed). The check starts and stops its
+own fixture server and uses synthetic messages, with no provider calls.
 
 ## Enabling providers
 
