@@ -1,0 +1,13 @@
+{
+  "id": "spring-festival",
+  "name": "Spring Festival",
+  "windows": [{ "from": "04-01", "to": "04-21" }],
+  "priority": 10,
+  "topicHint": "The spring festival is on at the Plaza. Chat about flowers, kites or the festival parade.",
+  "visuals": {
+    "decor": ["flower-garland", "kite", "bunting"],
+    "weather": "clear",
+    "tint": "#ffd1dc",
+    "ambient": { "timeOfDay": "day", "brightness": 1 }
+  }
+}

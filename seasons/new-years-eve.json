@@ -1,0 +1,13 @@
+{
+  "id": "new-years-eve",
+  "name": "New Year's Eve",
+  "windows": [{ "from": "12-31", "to": "01-01" }],
+  "priority": 30,
+  "topicHint": "It is New Year's Eve. Talk about resolutions, the countdown or fireworks over the Plaza.",
+  "visuals": {
+    "decor": ["fireworks", "confetti", "string-lights"],
+    "weather": "snow",
+    "tint": "#ffd700",
+    "ambient": { "timeOfDay": "night", "brightness": 0.5 }
+  }
+}

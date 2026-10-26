@@ -1,0 +1,5 @@
+body { font: 14px system-ui, sans-serif; margin: 0; background: #2b2e36; color: #eee; }
+header { padding: .5rem 1rem; background: #264653; }
+header h1 { font-size: 1.1rem; margin: 0; }
+main { max-width: 520px; padding: 1rem; }
+input, select, textarea { font: inherit; padding: .3rem; }

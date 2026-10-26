@@ -1,0 +1,9 @@
+{
+  "id": "gym", "name": "Iron Acorn Gym", "type": "fitness",
+  "plot": { "x": 20, "y": 18 }, "footprint": { "w": 5, "h": 4 },
+  "sign": "IRON ACORN GYM", "color": "#2a9d8f", "hours": { "open": 6, "close": 21 },
+  "vibe": "upbeat, sweaty and full of motivational posters",
+  "items": ["yoga mats", "jump ropes", "protein smoothie", "dumbbells"],
+  "topics": ["stretching routines", "personal bests", "rest days", "the town fun run"],
+  "roles": [{ "id": "coach", "title": "Coach", "keywords": ["coach", "fit", "energ", "sport"] }]
+}

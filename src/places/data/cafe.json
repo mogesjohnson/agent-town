@@ -1,0 +1,9 @@
+{
+  "id": "cafe", "name": "Corner Café", "type": "food",
+  "plot": { "x": 3, "y": 3 }, "footprint": { "w": 6, "h": 4 }, "anchor": "Cafe",
+  "sign": "CAFÉ", "color": "#f4a261", "hours": { "open": 7, "close": 19 },
+  "vibe": "bustling, chatty and buzzing with espresso",
+  "items": ["flat white", "chai latte", "iced mocha", "blueberry muffin", "herbal tea"],
+  "topics": ["coffee rituals", "people-watching", "weekend plans", "latte art"],
+  "roles": [{ "id": "barista", "title": "Barista", "keywords": ["barista", "coffee", "cafe"] }]
+}

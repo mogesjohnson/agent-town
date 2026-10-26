@@ -1,0 +1,9 @@
+{
+  "id": "park", "name": "Willow Park", "type": "outdoor",
+  "plot": { "x": 29, "y": 15 }, "footprint": { "w": 8, "h": 7 }, "anchor": "Park",
+  "sign": "WILLOW PARK", "color": "#90be6d", "hours": { "open": 6, "close": 22 },
+  "vibe": "breezy and green, with ducks by the pond",
+  "items": ["duck food", "picnic blankets", "frisbees", "trail maps"],
+  "topics": ["birdwatching", "the weather", "clouds that look like things", "picnic spots"],
+  "roles": [{ "id": "ranger", "title": "Park ranger", "keywords": ["ranger", "park", "nature"] }]
+}
