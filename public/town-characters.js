@@ -60,6 +60,10 @@ export function createCrowd(scene) {
     }
     state.agents.forEach((agent, index) => {
       let p = people.get(agent.name);
+      if (p && p.agent.provider !== agent.provider) {
+        scene.remove(p.root); p.shadow.geometry.dispose(); p.shadow.material.dispose();
+        people.delete(agent.name); p = null;
+      }
       const fresh = !p;
       if (fresh) { p = make(agent, index); people.set(agent.name, p); }
       p.agent = agent;

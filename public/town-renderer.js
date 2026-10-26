@@ -24,7 +24,7 @@ export function mountTown(canvas, fallback) {
   host.querySelector("canvas").addEventListener("webglcontextlost", (event) => {
     event.preventDefault(); dispose(); fallback();
   }, { once: true });
-  addEventListener("pagehide", dispose, { once: true });
+  addEventListener("pagehide", (event) => { if (!event.persisted) dispose(); });
   return {
     update(state) { paused = state.paused; crowd.update(state); },
     dispose,
