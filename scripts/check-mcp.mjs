@@ -33,6 +33,26 @@ try {
   const resources = await client.listResources();
   assert(resources.resources.some((r) => r.uri === "town://map"));
   await call("pause_town");
+  const error = async (name, args) => assert.equal((await client.callTool({ name, arguments: args })).isError, true);
+  const mapBefore = await call("get_map");
+  await error("place_building", { type: "house", x: 39, y: 24, dryRun: true });
+  await error("place_building", { type: "house", x: 18, y: 10, dryRun: true });
+  await call("place_building", { id: "mcp-house", type: "house", x: 0, y: 0, dryRun: true });
+  assert.deepEqual(await call("get_map"), mapBefore);
+  await call("place_building", { id: "mcp-house", type: "house", x: 0, y: 0 });
+  await error("move_building", { id: "mcp-house", x: 39, y: 24, dryRun: true });
+  await call("move_building", { id: "mcp-house", x: 10, y: 0, dryRun: true });
+  assert.equal((await call("get_map")).buildings.find((b) => b.id === "mcp-house").x, 0);
+  await call("move_building", { id: "mcp-house", x: 10, y: 0 });
+  assert.equal((await call("get_map")).buildings.find((b) => b.id === "mcp-house").x, 10);
+  await call("undo_last_change");
+  assert.equal((await call("get_map")).buildings.find((b) => b.id === "mcp-house").x, 0);
+  await call("remove_building", { id: "mcp-house" });
+  assert(!(await call("get_map")).buildings.some((b) => b.id === "mcp-house"));
+  await call("undo_last_change");
+  assert((await call("get_map")).buildings.some((b) => b.id === "mcp-house"));
+  await call("undo_last_change"); // undo original add after the move/removal were undone
+  assert(!(await call("get_map")).buildings.some((b) => b.id === "mcp-house"));
   const before = await call("get_places");
   const types = await call("get_place_types");
   const type = types.types.find((t) => t.type === "food")?.type ?? types.types[0].type;
@@ -50,7 +70,7 @@ try {
   assert((await call("get_places")).places.places.some((p) => p.id === place.id));
   await call("undo_last_change");
   assert(!(await call("get_places")).places.places.some((p) => p.id === place.id));
-  console.log(`pass: MCP handshake, ${tools.tools.length} tools, resources, preview/add/read/remove and two undo steps`);
+  console.log(`pass: MCP handshake, ${tools.tools.length} tools, resources, invalid/valid previews, building add/move/remove/undo and place preview/add/read/remove/undo`);
 } finally {
   await client.close();
   server.kill();
