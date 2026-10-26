@@ -1,9 +1,10 @@
 import * as THREE from "three";
 import { OrbitControls } from "/vendor/OrbitControls.js";
 import { buildWorld } from "./town-world.js";
+import { buildNaturalWorld } from "./town-natural-world.js";
 
 export function createTownView(host) {
-  const smooth = new URLSearchParams(location.search).get("style") === "natural";
+  const smooth = new URLSearchParams(location.search).get("style") !== "voxel";
   host.dataset.style = smooth ? "natural" : "voxel";
   const canvas = document.createElement("canvas");
   canvas.setAttribute("aria-label", "3D agent town; drag to orbit, right-drag to pan, scroll to zoom");
@@ -33,8 +34,18 @@ export function createTownView(host) {
   controls.minZoom = 0.75;
   controls.maxZoom = 2.7;
   controls.screenSpacePanning = false;
-  const world = buildWorld();
+  const world = smooth ? buildNaturalWorld() : buildWorld();
   scene.add(world.root);
+  if (world.ready) {
+    const status = document.createElement("span");
+    status.className = "asset-status"; status.setAttribute("role", "status");
+    status.textContent = "Loading local scenery…"; host.append(status);
+    host.dataset.assets = "loading";
+    world.ready.then(() => { host.dataset.assets = "ready"; status.remove(); }).catch(() => {
+      host.dataset.assets = "failed";
+      status.textContent = "Scenery unavailable. Run npm run build or choose Cozy voxel in Styles.";
+    });
+  }
   const ambient = new THREE.HemisphereLight("#fff0d2", "#667659", 2.3);
   const sun = new THREE.DirectionalLight("#fff0cf", 3);
   sun.position.set(-18, 32, 16);
@@ -95,6 +106,7 @@ export function createTownView(host) {
       disposed = true;
       cancelAnimationFrame(frame);
       observer.disconnect(); controls.dispose();
+      world.dispose?.();
       const geometries = new Set(), materials = new Set();
       scene.traverse((o) => {
         if (o.geometry) geometries.add(o.geometry);

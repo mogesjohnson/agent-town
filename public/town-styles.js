@@ -1,9 +1,10 @@
 const options = [
+  ["natural", "Natural 3D", "Scanned materials · third-person exploration"],
   ["voxel", "Cozy voxel", "Original pixel town · preserved"],
   ["2d", "Classic 2D", "Lightweight canvas fallback"],
 ];
 const query = new URLSearchParams(location.search);
-const current = query.get("renderer") === "2d" ? "2d" : query.get("style") || "voxel";
+const current = query.get("renderer") === "2d" ? "2d" : query.get("style") || "natural";
 const section = document.createElement("details");
 section.className = "style-panel";
 const tab = document.createElement("summary");

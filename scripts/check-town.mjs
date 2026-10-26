@@ -40,7 +40,7 @@ try {
     await route.fulfill({ contentType: "application/json", body: JSON.stringify({ paused: state.paused }) });
     await page.evaluate((s) => window.emitTown("state", s), state);
   });
-  await page.goto(`${base}/?time=noon`);
+  await page.goto(`${base}/?style=voxel&time=noon`);
   await page.locator('.town-stage[data-time="noon"]').waitFor();
   await page.waitForFunction(() => document.querySelectorAll(".agent-name").length === 5);
   assert.equal(await page.locator("#town").isVisible(), false);
@@ -90,7 +90,7 @@ try {
   assert.equal(await page.locator("#town").isVisible(), true);
   assert.equal(await page.locator(".town-stage").count(), 0);
   await page.route("**/vendor/three.module.js", (route) => route.abort());
-  await page.goto(base);
+  await page.goto(`${base}/?style=voxel`);
   await page.waitForTimeout(500);
   assert.equal(await page.locator("#town").isVisible(), true, "missing module falls back");
   assert.equal(await page.locator(".town-stage").count(), 0);
