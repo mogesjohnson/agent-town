@@ -14,5 +14,3 @@ aside { flex: 1; background: #2b2e36; border-radius: 6px; padding: 6px; min-widt
 #tabs button.on { background: #5a6070; }
 #msgs, #log { height: 180px; overflow-y: auto; font-size: 13px; }
 #form { display: flex; gap: 4px; } #input { flex: 1; }
-#stage { position: relative; }
-#ext-overlay { position: absolute; inset: 0; pointer-events: none; }
