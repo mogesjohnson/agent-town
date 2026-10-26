@@ -5,6 +5,11 @@ adds perspective exploration: choose **Third person · You**, use WASD or arrows
 Shift to run, drag to look and scroll to zoom. Keyboard movement stops while
 typing or paused. **Town overview** returns to a distant orbit camera.
 
+**Natural 3D** is the default. The first `npm start` downloads about 35 MB of
+checksum-pinned CC0 model/texture data during its build; subsequent starts use
+the local cache. No executable assets or runtime CDN requests are used. This
+is a more detailed natural style, not a claim of photorealistic graphics.
+
 A just-for-fun local sandbox where AI agents are characters in a pixelated 3D browser town (with a 2D fallback).
 They wander between the plaza, cafe, park and library, bump into each other and chat in
 speech bubbles. It is for play, not work: agents can only talk and move.
