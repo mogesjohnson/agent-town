@@ -15,12 +15,14 @@ try {
   const page = await browser.newPage(), errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.addInitScript(() => {
-    window.contexts = []; window.gains = []; window.oscillators = []; window.pulses = []; window.nodeCount = 0;
+    window.contexts = []; window.gains = []; window.oscillators = []; window.pulses = []; window.levels = []; window.nodeCount = 0;
     const NativeAudio = window.AudioContext;
     window.AudioContext = class extends NativeAudio {
       constructor() { super(); window.contexts.push(this); }
       createGain() {
         const n = super.createGain(), ramp = n.gain.linearRampToValueAtTime.bind(n.gain);
+        const index = window.gains.length, target = n.gain.setTargetAtTime.bind(n.gain);
+        n.gain.setTargetAtTime = (value, time, constant) => { window.levels.push({ index, value }); return target(value, time, constant); };
         n.gain.linearRampToValueAtTime = (value, time) => { window.pulses.push(value); return ramp(value, time); };
         window.gains.push(n); window.nodeCount++; return n;
       }
@@ -39,8 +41,7 @@ try {
   await page.waitForFunction(() => contexts[0]?.state === "running");
   const graphSize = await page.evaluate(() => nodeCount);
   assert.equal(graphSize, 13, "fixed reusable audio graph");
-  await page.waitForTimeout(100);
-  assert.ok(await page.evaluate(() => gains[2].gain.value > 0.03), "rain gain follows weather");
+  assert.ok(await page.evaluate(() => levels.some((l) => l.index === 2 && l.value === 0.09)), "rain automation follows weather");
   await page.evaluate(() => { audio.animate(5000, { weather: "clear", night: false, walking: true }); });
   assert.deepEqual(await page.evaluate(() => pulses), [0.13, 0.18], "day bird and footstep envelopes");
   await page.evaluate(() => { audio.animate(6000, { night: true, walking: false }); });
