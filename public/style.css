@@ -1,0 +1,16 @@
+body { font-family: system-ui, sans-serif; margin: 0; background: #1d1f24; color: #eee; }
+header { display: flex; gap: 12px; align-items: center; padding: 6px 12px; background: #2b2e36; }
+h1 { font-size: 18px; margin: 0; } h2 { font-size: 14px; margin: 4px 0; }
+main, #bottom { display: flex; gap: 8px; padding: 8px; }
+canvas { background: #cfe8a9; border-radius: 6px; }
+aside { flex: 1; background: #2b2e36; border-radius: 6px; padding: 6px; min-width: 260px; }
+#lobby { list-style: none; padding: 0; margin: 0; }
+#lobby li { padding: 4px; border-radius: 4px; cursor: pointer; font-size: 13px; }
+#lobby li:hover { background: #3a3e48; }
+.dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; }
+.st { float: right; font-size: 11px; opacity: .8; } .sub { font-size: 11px; opacity: .7; }
+#chat, #logbox { flex: 1; background: #2b2e36; border-radius: 6px; padding: 6px; }
+#tabs button { background: #3a3e48; color: #eee; border: 0; padding: 4px 8px; margin-right: 2px; cursor: pointer; }
+#tabs button.on { background: #5a6070; }
+#msgs, #log { height: 180px; overflow-y: auto; font-size: 13px; }
+#form { display: flex; gap: 4px; } #input { flex: 1; }

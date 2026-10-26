@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>agent-town</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>agent-town</h1>
+  <button id="pause">Pause</button>
+  <span id="usage"></span>
+</header>
+<main>
+  <canvas id="town" width="800" height="500"></canvas>
+  <aside>
+    <h2>Lobby</h2>
+    <ul id="lobby"></ul>
+  </aside>
+</main>
+<section id="bottom">
+  <div id="chat">
+    <div id="tabs"></div>
+    <div id="msgs"></div>
+    <form id="form"><input id="input" placeholder="Say something..." autocomplete="off"><button>Send</button></form>
+  </div>
+  <div id="logbox"><h2>Town log</h2><div id="log"></div></div>
+</section>
+<script src="app.js"></script>
+</body>
+</html>
