@@ -45,6 +45,7 @@ Every view is a resource and a matching read-only tool.
 | `town://agents` | `get_agents` | agents from `/api/state`: x, y, status, provider, turns, bubble, met |
 | `town://chats` | `get_chats` | the last 50 chat lines `{ t, from, to, text }` |
 | `town://places` | `get_places` | landmarks, plus `GET /api/places` when the places feature serves it |
+| `town://place_types` | `get_place_types` | `GET /api/places/types`: types `add_place` accepts, with default `w`, `h`, template and roles |
 | `town://seasons` | `get_seasons` | `GET /api/season` (seasons extension) |
 | `town://personalities` | `get_personalities` | config personality text, plus `GET /api/personalities` (personalities editor) |
 | `town://moods` | `get_moods` | `GET /api/moods` (moods feature) |
@@ -68,6 +69,8 @@ Every write tool takes an optional `dryRun: true`. A dry run validates the input
 | `upsert_agent` | `{ name, personality?, color?, provider?, model? }`: adds an agent (default provider `mock`) or updates one | restores it, or removes an added agent |
 | `set_personality` | `{ agent, personality }`: replaces the prompt personality | restores the old text |
 | `toggle_place` | `{ id, enabled? }`: opens or closes a place, such as `bakery`, via `POST /api/places/toggle` | toggles it back |
+| `add_place` | `{ type, name, x, y }` or `{ type, name, near }`, plus optional `id, w, h, hours, vibe, items, topics`, via `POST /api/places` | deletes the created place |
+| `remove_place` | `{ id }`: deletes a custom place via `DELETE /api/places/:id` (built-ins answer 403) | re-creates it with the same id and fields (409 if the id or spot was taken since) |
 | `upsert_season_event` | a full season event (`id, name, windows, priority, topicHint, visuals`), saved to town data | restores or removes it |
 | `trigger_event` | `{ season?, announcement? }`: forces a season (`null` clears it) and/or announces a happening | restores the previous season |
 | `pause_town` / `resume_town` | pauses or resumes the sim | restores the previous state |
@@ -83,7 +86,14 @@ Map edits are tagged `codex` when the MCP client name contains "codex", otherwis
 `undo_last_change` refuses (409) to undo a map edit when someone has edited the map since then.
 That keeps it from undoing the later edit. Use `undo_map_edit` to step back through the map yourself.
 
-Example asks: "put a house at 0,22", "paint a road along y = 12", "make Rook hungry", "add a mock agent called Pip who is a cheerful baker", "close the bakery",
+`add_place` and `remove_place` need the custom places routes (PR #24); without them they answer
+"not available" (404). Without `x` and `y`, `near` picks the spot: a place id, a building id or name,
+`"pond"`/`"water"` (the centroid of the largest water cluster on `GET /api/map`), or `{ x, y }`.
+Free top-left spots inside the 40x25 map that miss every place, building and water tile are tried
+nearest first. A 409 overlap (someone else built there meanwhile) searches again, up to 12 attempts.
+The result lists the `attempts`. A dry run shows the target and the candidate spots.
+
+Example asks: "build a bakery near the pond", "put a house at 0,22", "paint a road along y = 12", "make Rook hungry", "add a mock agent called Pip who is a cheerful baker", "close the bakery",
 "pause the town", "undo that".
 
 ## Town-side extension
