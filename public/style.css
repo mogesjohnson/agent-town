@@ -22,3 +22,16 @@ aside { flex: 1; background: #2b2e36; border-radius: 6px; padding: 6px; min-widt
   color: #fff9df; background: #4a5146e6; border: 1px solid #d4c395; border-radius: 4px;
   padding: 3px 7px; font: 11px ui-monospace, monospace; box-shadow: 0 2px 0 #283b3b55; }
 .town-overlays [hidden] { display: none; }
+
+.agent-name, .agent-bubble { position: absolute; transform: translate(-50%, -100%);
+  font: 12px ui-monospace, monospace; box-shadow: 0 2px 0 #283b3b33; }
+.agent-name { white-space: nowrap; color: #fffde9; background: #354b45df;
+  padding: 2px 6px; border-radius: 3px; border: 1px solid #b2bd92; }
+.agent-name.unavailable { opacity: .55; }
+.agent-bubble { width: max-content; max-width: 210px; padding: 9px 12px;
+  border: 2px solid #697a64; border-radius: 9px; color: #35483f; background: #fffbe8;
+  overflow-wrap: anywhere; line-height: 1.45; }
+.agent-bubble::after { content: ""; position: absolute; left: calc(50% - 5px); bottom: -7px;
+  width: 9px; height: 9px; background: #fffbe8; border-right: 2px solid #697a64;
+  border-bottom: 2px solid #697a64; transform: rotate(45deg); }
+.agent-bubble.thinking { letter-spacing: 3px; }
