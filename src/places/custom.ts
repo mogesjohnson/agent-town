@@ -29,7 +29,7 @@ export function clash(p: Place, others: Place[]): string | undefined {
 }
 
 /** Validate a request body and build the place. Does not save anything. */
-export function buildPlace(b: any, catalog: Place[]): Result {
+export function buildPlace(b: any, catalog: Place[], canEnter?: (x: number, y: number) => boolean): Result {
   const bad = (error: string) => ({ status: 400 as const, error });
   const t = templates(catalog).get(b?.type);
   if (!t) return bad(`type must be one of: ${[...templates(catalog).keys()].sort().join(", ")}`);
@@ -57,6 +57,9 @@ export function buildPlace(b: any, catalog: Place[]): Result {
   };
   const errs = validatePlace(place);
   if (errs.length) return bad(errs.map((e) => e.replace(`${id}: `, "")).join("; "));
+  if (canEnter) for (let y = place.plot.y; y < place.plot.y + place.footprint.h; y++)
+    for (let x = place.plot.x; x < place.plot.x + place.footprint.w; x++)
+      if (!canEnter(x, y)) return { status: 409, error: `overlaps blocked terrain at ${x},${y}` };
   const c = clash(place, catalog);
   return c ? { status: 409, error: c } : { place };
 }

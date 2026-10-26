@@ -130,7 +130,7 @@ export function register(ctx: Ctx) {
       || (b.dryRun !== undefined && typeof b.dryRun !== "boolean"))
       return send(res, 400, { ok: false, error: "integer x and y, optional boolean dryRun required" });
     const before = detail(p.id);
-    const r = buildPlace({ ...before, x: b.x, y: b.y }, catalog.filter((c) => c !== p));
+    const r = buildPlace({ ...before, x: b.x, y: b.y }, catalog.filter((c) => c !== p), town.canEnter);
     if (!("place" in r)) return send(res, r.status, { ok: false, error: r.error });
     if (!b.dryRun) {
       Object.assign(p, r.place); // catalog and persisted custom list share this object
@@ -143,13 +143,13 @@ export function register(ctx: Ctx) {
   });
   ctx.routes.add("GET", "/api/places/types", (_req, res) => send(res, 200, { types: typeList(catalog) }));
   ctx.routes.add("POST", "/api/places/preview", async (req, res) => {
-    const r = buildPlace(await readBody(req), catalog);
+    const r = buildPlace(await readBody(req), catalog, town.canEnter);
     if (!("place" in r)) return send(res, r.status, { ok: false, error: r.error });
     const { plot, footprint, roles: _roles, ...p } = r.place;
     send(res, 200, { ok: true, place: { ...p, ...plot, ...footprint, enabled: true } });
   });
   ctx.routes.add("POST", "/api/places", async (req, res) => {
-    const r = buildPlace(await readBody(req), catalog);
+    const r = buildPlace(await readBody(req), catalog, town.canEnter);
     if (!("place" in r)) return send(res, r.status, { ok: false, error: r.error });
     catalog.push(r.place);
     store.addCustom(r.place);
