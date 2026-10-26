@@ -6,6 +6,18 @@ const page = await browser.newPage();
 const errors = [];
 page.on("pageerror", (error) => errors.push(error.message));
 try {
+  await page.addInitScript(() => {
+    window.EventSource = class extends EventTarget {
+      constructor() {
+        super();
+        setTimeout(() => this.dispatchEvent(new MessageEvent("state", { data: JSON.stringify({
+          w: 40, h: 25, agents: [], landmarks: [], paused: false,
+          usage: { calls: 0, errors: 0, conversations: 0, chars: 0 },
+        }) })), 80);
+      }
+      close() {}
+    };
+  });
   await page.goto(`${process.env.TOWN_URL || "http://localhost:4317"}/?style=natural&time=noon`);
   const stage = page.locator('.town-stage[data-camera="visitor"]');
   await stage.waitFor();
