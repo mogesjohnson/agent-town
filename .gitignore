@@ -35,3 +35,6 @@ desktop.ini
 
 # REPO-SPECIFIC-BELOW: add repo entries after this line.
 town.config.json
+# Local runtime data written by extensions (town.personalities.json, ...)
+town.*.json
+!town.config.example.json
