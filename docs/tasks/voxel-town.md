@@ -1,9 +1,9 @@
 # Voxel town renderer
 
-Historical specification. The owner's later request in
-`docs/tasks/styles-camera.md` supersedes voxel-only, sole-dependency and
-handmade-art directions. Preserve this look under Styles; external libraries
-and licensed assets are authorized for the new world.
+Retired historical specification. The owner discontinued this renderer and the
+Styles tab; do not rebuild or reactivate it. Current visual requirements are in
+`docs/tasks/natural-only.md`. Licensed external libraries and assets remain
+authorized. The acceptance list below records the earlier delivered request.
 
 Replace only the browser renderer above PR #5. Keep the simulation, server API,
 SSE, lobby, chat tabs and pause behavior unchanged.

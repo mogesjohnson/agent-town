@@ -2,12 +2,10 @@
 const TILE = 20;
 const cv = document.getElementById("town"), ctx = cv.getContext("2d");
 let state = null, active = "All", townView = null;
-if (new URLSearchParams(location.search).get("renderer") !== "2d") {
-  import("./town-renderer.js").then(({ mountTown }) => {
-    townView = mountTown(cv, () => { townView = null; render(); });
-    if (state) townView.update(state);
-  }).catch((error) => console.warn("3D town unavailable; using 2D", error));
-}
+import("./town-renderer.js").then(({ mountTown }) => {
+  townView = mountTown(cv, () => { townView = null; render(); });
+  if (state) townView.update(state);
+}).catch((error) => console.warn("3D town unavailable; using canvas fallback", error));
 const tabs = Object.assign(Object.create(null), { All: [] });
 const HISTORY_LIMIT = 200, RECENT_LIMIT = 2048, recentEvents = new Set();
 

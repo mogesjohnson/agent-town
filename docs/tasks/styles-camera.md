@@ -1,6 +1,10 @@
 # World styles and third-person exploration
 
-Owner revision: preserve the original voxel town under a Styles tab, add a
+Historical specification. The owner has retired the voxel style, 2D selection
+and Styles tab. Current requirements are in `docs/tasks/natural-only.md`.
+Third-person exploration and licensed external assets remain current.
+
+Earlier owner revision: preserve the original voxel town under a Styles tab, add a
 naturalistic asset-based world, smooth rendering and a third-person view where
 the visitor can see their avatar. External libraries and licensed assets are
 authorized; the earlier voxel task's sole-dependency and handmade-art direction
