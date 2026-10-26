@@ -39,7 +39,9 @@ Role-play only: no tools, files, shell or real work. Only agents whose provider 
 hired, keyword matches first, and at most half the town works so someone is left to visit.
 During opening hours an on-duty worker walks into its place, gets status `working` (the sim then
 leaves it be) and greets each nearby visitor with a canned line (no model call, 90 s cooldown per
-pair). Shift end, toggle-off or losing the job sets `idle` again, only if it is still `working`.
+pair). `working` is added to `ctx.chattyStatuses` (#15), so staff also have model chats with
+visitors using the job prompt; the sim restores `working` after the chat. Shift end, toggle-off
+or losing the job sets `idle` again, only if it is still `working`.
 Only `idle`, `walking` or our own `working` agents are hired, walked or greeted; any other status
 (e.g. `playing` from another extension) is left alone.
 
