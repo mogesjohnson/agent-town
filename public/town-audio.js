@@ -14,6 +14,7 @@ export function createTownAudio(host) {
   let enabled = false, disposed = false, nextBird = 0, nextCricket = 0, nextStep = 0;
   let environment = { paused: false, weather: "clear", night: false, walking: false };
   const nodes = [], sources = [];
+  const targets = new WeakMap();
   const node = (n) => (nodes.push(n), n);
   const gain = (level = 0) => { const n = node(context.createGain()); n.gain.value = level; return n; };
   function createGraph() {
@@ -39,13 +40,20 @@ export function createTownAudio(host) {
     bird = tone("sine", 2400); cricket = tone("sine", 4100);
     for (const source of sources) source.start();
   }
-  const smooth = (param, value) => param.setTargetAtTime(value, context.currentTime, 0.08);
+  const smooth = (param, value) => {
+    if (targets.get(param) === value) return;
+    targets.set(param, value); param.cancelScheduledValues(context.currentTime);
+    param.setTargetAtTime(value, context.currentTime, 0.08);
+  };
   function audible() { return enabled && !disposed && !document.hidden && !environment.paused && Number(volume.value) > 0; }
   function sync() {
     if (!context || context.state === "closed") return;
     // Immediate master mute also cancels already scheduled chirps and footsteps audibly.
-    master.gain.cancelScheduledValues(context.currentTime);
-    master.gain.setValueAtTime(audible() ? Number(volume.value) : 0, context.currentTime);
+    const level = audible() ? Number(volume.value) : 0;
+    if (targets.get(master.gain) !== level) {
+      targets.set(master.gain, level); master.gain.cancelScheduledValues(context.currentTime);
+      master.gain.setValueAtTime(level, context.currentTime);
+    }
     const wet = ["rain", "storm", "snow"].includes(environment.weather);
     smooth(wind.gain, environment.weather === "storm" || environment.weather === "wind" ? 0.16 : 0.07);
     smooth(rain.gain, wet ? (environment.weather === "snow" ? 0.018 : 0.09) : 0);
