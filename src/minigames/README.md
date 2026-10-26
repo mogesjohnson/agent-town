@@ -6,11 +6,11 @@ No existing file is edited.
 
 ## Design
 
-- `extension.ts` exports `register({ town, clients, routes })`, which `src/extensions.ts`
+- `extension.ts` exports `register({ town, clients, routes, on })`, which `src/extensions.ts`
   loads from `dist/minigames/extension.js` at startup. It calls
   `registerMinigames(town, emit, routes?, on?)` (in `index.ts`) with an SSE `emit` over
   `clients`. The host loop runs on the `tick` event; nothing in the sim or server is patched.
-- A host loop runs every few seconds. When the town is not paused and no game is running,
+- Every few seconds the host checks: When the town is not paused and no game is running,
   it picks two or three free agents (idle or walking, not on chat cooldown) and walks them
   to the Plaza. Once they arrive (or after a short timeout) the game starts.
 - While playing, agents are marked `chatting` so the sim neither moves them nor starts a
