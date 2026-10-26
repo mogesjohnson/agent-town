@@ -120,5 +120,24 @@ export function buildWorld() {
     block("#6c9057", x, 0.22, z, 0.08, 0.4, 0.08);
     block(["#eab5ac", "#f0d689", "#d4c9e3"][i % 3], x, 0.45, z, 0.22, 0.18, 0.22);
   }
+  // Batch static cubes by material so night lighting stays inexpensive.
+  root.updateMatrixWorld(true);
+  const batches = new Map();
+  root.traverse((mesh) => {
+    if (!mesh.isMesh) return;
+    if (!batches.has(mesh.material)) batches.set(mesh.material, []);
+    batches.get(mesh.material).push(mesh);
+  });
+  for (const [material, meshes] of batches) {
+    const batch = new THREE.InstancedMesh(cube, material, meshes.length);
+    batch.castShadow = batch.receiveShadow = true;
+    meshes.forEach((mesh, i) => {
+      batch.setMatrixAt(i, mesh.matrixWorld);
+      mesh.removeFromParent();
+    });
+    batch.instanceMatrix.needsUpdate = true;
+    batch.computeBoundingSphere();
+    root.add(batch);
+  }
   return { root, glow, lamps, labels };
 }
