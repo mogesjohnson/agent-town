@@ -14,6 +14,13 @@ test("loneliness favors less familiar residents and personality favors books", (
   assert.equal(chooseGoal(agent, { ...needs, social: 5 }, places, others, 40, 25, () => 0.5).name, "Cora");
   assert.equal(chooseGoal(agent, needs, places, [], 40, 25, () => 0.5).name, "Library");
 });
+test("remembered friends and places are used only when needs allow", () => {
+  const hints = { favorite: "Park", friend: "Ben" };
+  const others = ["Ben", "Cora"].map((name) => ({ ...agent, name, met: {} }));
+  assert.equal(chooseGoal(agent, { ...needs, hunger: 10 }, places, others, 40, 25, () => 0, hints).name, "Cafe");
+  assert.equal(chooseGoal(agent, { ...needs, social: 5 }, places, others, 40, 25, () => 0.1, hints).name, "Ben");
+  assert.equal(chooseGoal(agent, needs, places, [], 40, 25, () => 0.5, hints).reason, "Returning to a favorite place");
+});
 test("destinations stay inside the map even after malformed place coordinates", () => {
   const g = chooseGoal(agent, { ...needs, hunger: 1 }, [{ name: "Cafe", x: -50, y: 200 }], [], 40, 25);
   assert.equal(g.x, 0); assert.equal(g.y, 24);

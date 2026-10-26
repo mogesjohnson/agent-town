@@ -2,6 +2,8 @@ import type { Routes, PromptHook } from "../extensions.js";
 import type { Town } from "../sim.js";
 import { W, H, LANDMARKS } from "../sim.js";
 import { moodOf } from "../moods/extension.js";
+import { hintsFor } from "../memories/model.js";
+import { currentBook } from "../memories/store.js";
 import { chooseGoal, type Goal } from "./model.js";
 
 interface Ctx {
@@ -39,7 +41,8 @@ export function register({ town, routes, on, promptHooks }: Ctx) {
         const places = locations.map((p) => ({ name: p.name, x: p.x + Math.floor(p.w / 2), y: p.y + Math.floor(p.h / 2) }));
         const resident = (b: typeof a) => ({ ...b, name: b.cfg.name, personality: b.cfg.personality });
         const goal = chooseGoal(resident(a), moodOf(a.cfg.name).needs, places,
-          town.agents.filter((b) => b !== a && b.available).map(resident), W, H);
+          town.agents.filter((b) => b !== a && b.available).map(resident), W, H,
+          Math.random, hintsFor(currentBook(), a.cfg.name));
         intent = { goal, until: tick + 110, arrived: false };
         intents.set(a.cfg.name, intent);
       }
