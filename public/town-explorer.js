@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { attachAnimatedResident } from "./town-models.js";
 
 // The visitor is local to this browser; moving it never spends model tokens.
 export function createExplorer(view, host) {
@@ -12,6 +13,10 @@ export function createExplorer(view, host) {
     new THREE.MeshStandardMaterial({ color: "#c99d7a", roughness: 0.9 }));
   head.position.y = 1.65; head.castShadow = true;
   avatar.add(body, head); scene.add(avatar);
+  const animation = attachAnimatedResident(avatar, "#cc6944");
+  animation.ready.then(() => { host.dataset.visitorModel = "ready"; }).catch(() => {
+    host.dataset.visitorModel = "fallback";
+  });
   const bar = document.createElement("div");
   bar.className = "explore-controls";
   const select = document.createElement("select");
@@ -75,13 +80,15 @@ export function createExplorer(view, host) {
       }
       body.position.y = 0.9 + Math.sin(now * 0.013) * 0.04;
     }
+    animation.animate(dt, movement.lengthSq() > 0 && !paused, paused);
     const target = avatar.position.clone().add(new THREE.Vector3(0, 1.25, 0));
     camera.position.add(target.clone().sub(controls.target)); controls.target.copy(target);
     position.textContent = `${avatar.position.x.toFixed(2)}, ${avatar.position.z.toFixed(2)}`;
   }
   return { animate, setPaused(value) { paused = value; }, dispose() {
     removeEventListener("keydown", keydown); removeEventListener("keyup", keyup); removeEventListener("blur", clear);
-    bar.remove(); avatar.removeFromParent();
+    animation.dispose(); bar.remove();
+    // Leave the avatar attached for the view's shared geometry/material cleanup.
     for (const mesh of [body, head]) { mesh.geometry.dispose(); mesh.material.dispose(); }
   } };
 }
