@@ -1,15 +1,5 @@
-body { font: 14px system-ui, sans-serif; margin: 0; background: #f6f1e7; color: #222; }
-header { display: flex; gap: 1rem; align-items: center; padding: .5rem 1rem; background: #264653; color: #fff; }
+body { font: 14px system-ui, sans-serif; margin: 0; background: #2b2e36; color: #eee; }
+header { padding: .5rem 1rem; background: #264653; }
 header h1 { font-size: 1.1rem; margin: 0; }
-main { display: flex; gap: 1rem; padding: 1rem; }
-nav { min-width: 160px; }
-nav ul { list-style: none; padding: 0; margin: 0; }
-nav li { padding: .35rem .5rem; cursor: pointer; border-radius: 4px; }
-nav li.active { background: #e9c46a; }
-nav li.set::after { content: " *"; color: #2a9d8f; }
-form { display: flex; flex-direction: column; gap: .6rem; max-width: 520px; flex: 1; }
-label { display: flex; flex-direction: column; gap: .2rem; font-weight: 600; }
-input, select, textarea { font: inherit; padding: .35rem; }
-small { font-weight: 400; color: #666; }
-.row { display: flex; gap: .5rem; }
-#errors { color: #b00020; }
+main { max-width: 520px; padding: 1rem; }
+input, select, textarea { font: inherit; padding: .3rem; }

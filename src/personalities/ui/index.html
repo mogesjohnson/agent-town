@@ -6,24 +6,8 @@
 <link rel="stylesheet" href="editor.css">
 </head>
 <body>
-<header><h1>agent-town personalities</h1><span id="status"></span></header>
-<main>
-  <nav><h2>Agents</h2><ul id="agents"></ul></nav>
-  <form id="form" autocomplete="off">
-    <h2 id="title">Pick an agent</h2>
-    <label>Name <input id="name"></label>
-    <label>Traits <small>(comma separated)</small> <input id="traits"></label>
-    <label>Mood <select id="mood"></select></label>
-    <label>Backstory <textarea id="backstory" rows="4"></textarea></label>
-    <label>Speaking style <input id="speakingStyle"></label>
-    <label>Goals <small>(one per line)</small> <textarea id="goals" rows="4"></textarea></label>
-    <div class="row">
-      <button type="submit">Save</button>
-      <button type="button" id="clear">Remove personality</button>
-    </div>
-    <ul id="errors"></ul>
-  </form>
-</main>
-<script src="editor.js"></script>
+<header><h1>agent-town personalities</h1></header>
+<main id="root"></main>
+<script type="module" src="standalone.js"></script>
 </body>
 </html>
