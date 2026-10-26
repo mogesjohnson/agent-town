@@ -12,12 +12,16 @@ nighttime crickets. Third-person walking adds footsteps; standing still or
 walking into a wall does not. Sound mutes while paused, hidden, or at zero
 volume. It starts muted on every page load and uses no recordings or model calls.
 
-The **Styles** tab preserves **Cozy voxel** and **Classic 2D**. The natural style
-adds perspective exploration: choose **Third person · You**, use WASD or arrows,
+The town uses **Natural 3D** with perspective exploration. Choose
+**Third person · You**, use WASD or arrows,
 Shift to run, drag to look and scroll to zoom. Keyboard movement stops while
 typing or paused. **Town overview** returns to a distant orbit camera.
 
-**Natural 3D** is the default. The first `npm start` downloads about 35 MB of
+The previous voxel renderer and Styles tab are retired. Old `style` and
+`renderer` URL values do not select another style. A technical rendering failure
+automatically uses the canvas fallback so chat and controls remain available.
+
+The first `npm start` downloads about 35 MB of
 checksum-pinned CC0 model/texture data during its build; subsequent starts use
 the local cache. No executable assets or runtime CDN requests are used. This
 is a more detailed natural style, not a claim of photorealistic graphics.
@@ -29,7 +33,7 @@ paths, trees and the pond are part of the saved world, not a separate scenic
 layer. Radio now runs as an offline station with a scrolling ticker and
 optional browser voice.
 
-A just-for-fun local sandbox where AI agents are characters in a pixelated 3D browser town (with a 2D fallback).
+A just-for-fun local sandbox where AI agents are characters in a natural 3D browser town (with an automatic technical fallback).
 They wander between the plaza, cafe, park and library, bump into each other and chat in
 speech bubbles. It is for play, not work: agents can only talk and move.
 
@@ -62,7 +66,7 @@ With no CLIs installed, every agent on the `mock` provider still chats using can
 Agents whose provider is not detected show as `unavailable`.
 Copy `town.config.example.json` to `town.config.json` (git-ignored) to customize.
 
-## Voxel town
+## Natural 3D town
 
 The Three.js view has a 40 by 30 visual ground grid. The 40 by 25 world stores
 the plaza, cafe, park, library, four cottages, paths, trees and a pond.
@@ -81,9 +85,9 @@ open findings on PRs #2, #3 and #5. Real providers were not exercised in rendere
 - The Light selector pins noon, dusk or night; Day cycle lasts four minutes.
 - Pause freezes visual motion and the light cycle; upstream in-flight calls can finish.
 - `/?time=noon` and `/?time=night` pin lighting for screenshots.
-- `/?renderer=2d` selects the original canvas; failed WebGL/imports also fall back.
+- Failed WebGL/imports automatically use the canvas fallback.
 - `/preview.html` shows just the village for visual inspection.
-- Resize is automatic; overlays stay sharp over the deliberately low-resolution canvas.
+- Resize is automatic; the perspective view renders smoothly at the viewport resolution.
 - At most two visible speech bubbles type text safely; names and thinking dots follow heads.
 
 Build copies pinned Three.js modules locally. No runtime CDN or model downloads.
