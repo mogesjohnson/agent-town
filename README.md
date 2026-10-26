@@ -68,6 +68,8 @@ The Three.js view has a 40 by 30 visual ground grid. The 40 by 25 world stores
 the plaza, cafe, park, library, four cottages, paths, trees and a pond.
 Buildings cannot overlap each other, trees or water. Edits and the undo
 log are saved in `.runtime/world.json` and restored on the next start.
+The natural view builds those records with stable ids. See
+[docs/world-objects.md](docs/world-objects.md). Weather and sound stay separate.
 All original geometry is CC0; see [CREDITS.md](CREDITS.md).
 
 For a fresh checkout, copy `town.config.preview.json` to `town.config.json`
