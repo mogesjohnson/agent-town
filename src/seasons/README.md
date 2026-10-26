@@ -94,6 +94,8 @@ server restarts.
 import { pickEvent, triggerEvent, clearEvent, getActiveEvent, getTopicHint, getVisuals } from "./seasons/index.js";
 ```
 
-`attachSeasons(server, town)` in `route.ts` registers the routes ahead of the server's own
-request handler and appends `getTopicHint()` to each agent's system prompt. It is called once
-from `src/server.ts`, on the line marked `// seasons hook`.
+`extension.ts` exports `register(ctx)` for the shared extension loader in `src/extensions.ts`
+(branch `grok/extensions`). It adds the three routes to `ctx.routes` and pushes a prompt hook
+onto `ctx.promptHooks` that appends `getTopicHint()`. No other file has a seasons hook; the
+routes and hint go live once `server.ts` calls `loadExtensions()` and applies `routes` and
+`promptHooks`, which is `grok/extensions`' job.
