@@ -58,11 +58,11 @@ export function register(ctx: Ctx) {
     syncSim();
     try { persist(); } catch { console.error("[world] could not save the town"); }
   };
-  // Agents do not keep a water or tree cell as their walk target.
-  ctx.on("tick", () => {
-    const blocked = (x: number, y: number) => tm.tile(x, y) === "water" || tm.tile(x, y) === "tree";
-    for (const a of ctx.town.agents) if (blocked(a.tx, a.ty)) { a.tx = a.x; a.ty = a.y; }
-  });
+  // The sim consults this before every step, rather than after it has entered a blocked cell.
+  ctx.town.canEnter = (x, y) => {
+    const tile = tm.tile(x, y);
+    return tile !== undefined && tile !== "water" && tile !== "tree";
+  };
 
   const route = (method: string, path: string, fn: (b: any, url: URL) => unknown) =>
     ctx.routes.add(method, path, async (req, res, url) => {
