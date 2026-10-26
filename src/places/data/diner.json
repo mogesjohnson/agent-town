@@ -1,0 +1,12 @@
+{
+  "id": "diner", "name": "Moonlight Diner", "type": "food",
+  "plot": { "x": 13, "y": 17 }, "footprint": { "w": 5, "h": 3 },
+  "sign": "MOONLIGHT DINER", "color": "#e63946", "hours": { "open": 6, "close": 23 },
+  "vibe": "chrome stools, jukebox tunes and endless refills",
+  "items": ["pancake stack", "grilled cheese", "milkshake", "apple pie", "bottomless coffee"],
+  "topics": ["late-night cravings", "the jukebox playlist", "best pie in town", "road trips"],
+  "roles": [
+    { "id": "cook", "title": "Short-order cook", "keywords": ["cook", "chef", "food"] },
+    { "id": "server", "title": "Server", "keywords": ["friendly", "cheer"] }
+  ]
+}

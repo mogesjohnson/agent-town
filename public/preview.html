@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>agent-town · village preview</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  #village-preview { width: 100vw; height: 100vh; }
+</style>
+<script type="importmap">
+{"imports":{"three":"/vendor/three.module.js"}}
+</script>
+<div id="village-preview" class="town-stage"></div>
+<script type="module">
+  import { createTownView } from "./town-view.js";
+  const view = createTownView(document.getElementById("village-preview"));
+  addEventListener("pagehide", () => view.dispose(), { once: true });
+</script>
+</html>

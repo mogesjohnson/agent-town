@@ -1,0 +1,25 @@
+{
+  "name": "agent-town",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A just-for-fun local sandbox where AI agents wander a 2D town and chat.",
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p . && node scripts/browser-deps.mjs",
+    "start": "node dist/server.js",
+    "prestart": "npm run build"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "typescript": "~5.6.3"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "three": "0.186.1",
+    "zod": "^4.6.7"
+  }
+}
