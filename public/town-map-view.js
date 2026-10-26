@@ -64,9 +64,17 @@ export function createMapView(view) {
         batch.setMatrixAt(index, matrix);
       });
       batch.instanceMatrix.needsUpdate = true; batch.computeBoundingSphere();
-      if (type === "tree") for (const { x, y } of cells) {
-        const group = new THREE.Group(); group.name = "painted-tree"; tiles.add(group);
-        tree(group, (x + 0.5) * 40 / width - 20, (y + 0.5) * 30 / height - 15, 0.7);
+      if (type === "tree") for (const [geometry, color, h, scale] of [
+        [cube, "#725d44", 0.56, [0.112, 1.12, 0.112]], [sphere, "#547a45", 1.26, [0.56, 0.77, 0.56]],
+      ]) {
+        const trees = new THREE.InstancedMesh(geometry, material(color), cells.length);
+        trees.name = "painted-tree"; trees.castShadow = trees.receiveShadow = true; tiles.add(trees);
+        cells.forEach(({ x, y }, index) => {
+          matrix.makeScale(...scale);
+          matrix.setPosition((x + 0.5) * 40 / width - 20, h, (y + 0.5) * 30 / height - 15);
+          trees.setMatrixAt(index, matrix);
+        });
+        trees.instanceMatrix.needsUpdate = true; trees.computeBoundingSphere();
       }
     }
     const present = new Set(map.buildings.map((b) => b.id));
