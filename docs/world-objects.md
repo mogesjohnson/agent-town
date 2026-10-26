@@ -28,3 +28,8 @@ abandoned. Removing every building leaves random wandering available.
 
 Custom venue creation, relocation and previews reject footprints over water or trees
 using the live map's traversal predicate. Automatic `near` searches skip those cells.
+
+Anchored venues remain registered when their building is moved, renamed or absent in a
+saved world; missing buildings detach the venue until its stable building id returns.
+Run `npm run build` then `node scripts/check-world-restart.mjs` for isolated mock-town
+migration/restart/undo checks (port 4331, override with `WORLD_CHECK_PORT`).

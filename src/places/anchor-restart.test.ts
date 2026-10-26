@@ -8,10 +8,10 @@ import { clash } from "./custom.js";
 test("catalog survives a moved anchor when loading after world restoration", () => {
   const cafe = LANDMARKS.find((l) => l.name === "Cafe")!, original = { ...cafe };
   try {
-    cafe.x = 8; cafe.y = 0;
+    cafe.x = 0; cafe.y = 0;
     const catalog = loadCatalog();
     const place = catalog.find((p) => p.id === "cafe")!;
-    assert(place); assert.equal(place.plot.x, 8); assert.equal(place.plot.y, 0);
+    assert(place); assert.equal(place.plot.x, 0); assert.equal(place.plot.y, 0);
   } finally { Object.assign(cafe, original); }
 });
 test("missing and renamed anchors remain detached until their stable id returns", () => {
