@@ -2,6 +2,7 @@ import type { Routes } from "../extensions.js";
 import { LANDMARKS, type Agent, type Emit, type Town } from "../sim.js";
 import { GAMES, type Game, type GameCtx } from "./games.js";
 import { Scoreboard } from "./scoreboard.js";
+import { readObject, RequestError } from "../request-safety.js";
 
 const FIRST_GAME_MS = 15_000, BETWEEN_GAMES_MS = 45_000, GATHER_MS = 15_000, COOLDOWN_MS = 10_000;
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -84,11 +85,13 @@ export function registerMinigames(town: Town, emit: Emit, routes?: Routes, on?: 
     }
   }
 
+  const freePlayers = () => shuffle(town.agents.filter((a) =>
+    a.available && (a.status === "idle" || a.status === "walking") && a.cooldownUntil < Date.now()));
+
   const step = () => {
     const now = Date.now();
     if (current || town.paused || now < nextAt) return;
-    const free = shuffle(town.agents.filter((a) =>
-      a.available && (a.status === "idle" || a.status === "walking") && a.cooldownUntil < now));
+    const free = freePlayers();
     const games = GAMES.filter((g) => g.minPlayers <= free.length);
     if (!games.length) { nextAt = now + 5_000; return; }
     const game = games[Math.floor(Math.random() * games.length)];
@@ -99,6 +102,27 @@ export function registerMinigames(town: Town, emit: Emit, routes?: Routes, on?: 
   routes?.add("GET", "/api/minigames", (_req, res) => {
     res.writeHead(200, { "content-type": "application/json" });
     res.end(JSON.stringify(snapshot()));
+  });
+  routes?.add("POST", "/api/minigames/start", async (req, res) => {
+    try {
+      const body = await readObject(req);
+      const game = GAMES.find((g) => g.id === body.game);
+      if (!game) throw new RequestError(400, "Choose tag, trivia or rps.");
+      if (town.paused) throw new RequestError(409, "Resume the town before starting a game.");
+      if (current) throw new RequestError(409, "A game is already running.");
+      const free = freePlayers();
+      if (free.length < game.minPlayers)
+        throw new RequestError(409, `Need ${game.minPlayers} free residents. Wait for their chats to finish.`);
+      // run() reserves current synchronously before its first await, preventing double starts.
+      void run(game, free.slice(0, game.maxPlayers));
+      town.broadcastState();
+      res.writeHead(202, { "content-type": "application/json" });
+      res.end(JSON.stringify({ ok: true, ...snapshot() }));
+    } catch (error) {
+      if (!(error instanceof RequestError)) throw error;
+      res.writeHead(error.status, { "content-type": "application/json" });
+      res.end(JSON.stringify({ error: error.message }));
+    }
   });
   return { snapshot };
 }
