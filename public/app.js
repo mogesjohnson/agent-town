@@ -51,7 +51,7 @@ function appendChat(tab, line) {
   if (history.length > HISTORY_LIMIT) history.splice(0, history.length - HISTORY_LIMIT);
 }
 
-function esc(s) { return s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]); }
+function esc(s) { return String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]); }
 
 function render() {
   if (!state) return;
@@ -82,8 +82,8 @@ function render() {
   document.getElementById("usage").textContent =
     `calls ${u.calls} · errors ${u.errors} · convos ${u.conversations} · chars ${u.chars} · limit ${state.maxTurnsPerAgent} turns/agent, ${state.turnsPerMinute}/min`;
   document.getElementById("lobby").innerHTML = state.agents.map((a) =>
-    `<li data-name="${esc(a.name)}"><span class="dot" style="background:${a.color}"></span><b>${esc(a.name)}</b>
-     <span class="st">${a.status} · ${a.turns}/${state.maxTurnsPerAgent}</span>
+    `<li data-name="${esc(a.name)}"><span class="dot" style="background:${esc(a.color)}"></span><b>${esc(a.name)}</b>
+     <span class="st">${esc(a.status)} · ${a.turns}/${state.maxTurnsPerAgent}</span>
      <div class="sub">${esc(a.provider)} / ${esc(a.model)} · ${esc(a.account)}</div></li>`).join("");
   renderTokens();
 }
