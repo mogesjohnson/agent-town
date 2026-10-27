@@ -30,6 +30,10 @@ export function runCli(cmd: string, args: string[], stdin: string, timeoutMs: nu
   // .cmd shims cannot be spawned without a shell on Windows; run them via cmd.exe with an arg array.
   const isCmd = process.platform === "win32" && /\.cmd$/i.test(cmd);
   const file = isCmd ? (process.env.ComSpec ?? "cmd.exe") : cmd;
+  // cmd.exe re-parses its command line, so metacharacters in args (prompt text, model names)
+  // could inject commands. Refuse them instead of trying to escape.
+  if (isCmd && args.some((a) => /[&|<>^%!"()\r\n]/.test(a)))
+    return Promise.reject(new Error("unsafe argument for .cmd shim"));
   const argv = isCmd ? ["/d", "/s", "/c", cmd, ...args] : args;
   return new Promise((resolve, reject) => {
     const child = spawn(file, argv, { cwd, shell: false, windowsHide: true, stdio: ["pipe", "pipe", "ignore"] });
