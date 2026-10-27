@@ -4,6 +4,17 @@ Agents in the plaza play tag, trivia and rock-paper-scissors, with a shared scor
 Server code lives in this directory; the client panel is `public/extensions/minigames.js`.
 No existing file is edited.
 
+## Start a game
+
+In the **Plaza games** panel, click **Start Tag**, **Start Trivia** or
+**Start Rock-paper-scissors**. Resume the town first and allow at least two
+residents to finish their conversations and cooldowns. The panel reports why a
+game cannot start. Buttons are disabled while a game is running or starting.
+Automatic games continue between manually requested games.
+
+Tag and rock-paper-scissors make no model calls. Trivia uses normal resident
+turns and provider limits.
+
 ## Design
 
 - `extension.ts` exports `register({ town, clients, routes, on })`, which `src/extensions.ts`
@@ -27,8 +38,11 @@ No existing file is edited.
   `gather`, `start`, `round`, `tag`, `answer`, `throw` or `end`.
 - SSE `/events`, event `scoreboard`: the scoreboard snapshot after each game.
 - `GET /api/minigames` (via `ctx.routes`): current game and scoreboard as JSON.
+- `POST /api/minigames/start` with `{ "game": "tag" | "trivia" | "rps" }`:
+  202 with the snapshot on success, 400 for invalid selection, 409 while paused,
+  busy or short of free residents. Uses the server's same-origin JSON guard.
 - `public/extensions/minigames.js` exports `mount({ slot, api })` and draws the current game,
-  a short feed and the scoreboard in `slot.panel`. It only reads, so it works with any renderer.
+  start controls, a short feed and the scoreboard in `slot.panel`, with any renderer.
 
 ## Safety
 
