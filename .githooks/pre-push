@@ -1,0 +1,3 @@
+#!/bin/sh
+# PR size gate (RULES.md R8). Enable once per clone: git config core.hooksPath .githooks
+exec node scripts/check/pr-size.mjs

@@ -63,8 +63,8 @@ which blocks a merge only if a ruleset marks it required.
 aim under 400. Commit count is never the measure. Bigger work becomes stacked PRs.
 An exception needs the `size-exception` label and a `Size exception:` line saying why.
 `SIZE_EXCEPTION=<reason>` gets a local push through but not CI; `PR_SIZE_LIMIT` can only lower the limit.
-*Enforced by:* `scripts/check/pr-size.mjs` on pre-push and in `pr-checks`, which runs the base
-commit's copy so a PR cannot loosen its own gate. Advisory until a ruleset requires `pr-checks`.
+*Enforced by:* `scripts/check/pr-size.mjs` in the local `.githooks/pre-push` hook (enable with
+`git config core.hooksPath .githooks`). The repo is public, so there is no CI size check; review is the backstop.
 
 ## Evidence
 
