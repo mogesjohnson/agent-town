@@ -135,6 +135,8 @@ function renderChat() {
 document.getElementById("lobby").addEventListener("click", (e) => {
   const li = e.target.closest("li"); if (!li) return;
   active = li.dataset.name; tabs[active] ??= []; renderChat();
+  const f = townView?.follow?.(li.dataset.name);
+  document.querySelectorAll("#lobby li").forEach((el) => el.classList.toggle("following", el.dataset.name === f));
 });
 document.getElementById("tabs").addEventListener("click", (e) => {
   if (e.target.dataset.tab) { active = e.target.dataset.tab; renderChat(); }
