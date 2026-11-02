@@ -41,5 +41,19 @@
 </script>
 <script src="app.js"></script>
 <script type="module" src="ext-loader.js"></script>
+<div id="help-overlay" role="dialog" aria-modal="true" aria-labelledby="help-title" hidden>
+  <div class="help-box">
+    <h2 id="help-title">Controls</h2>
+    <ul>
+      <li><kbd>W A S D</kbd> / arrow keys: move</li>
+      <li><kbd>Shift</kbd>: run</li>
+      <li>Drag: look around</li>
+      <li>Scroll: zoom</li>
+      <li><kbd>P</kbd> or <kbd>Space</kbd>: pause / resume</li>
+      <li><kbd>?</kbd>: toggle this help, <kbd>Esc</kbd>: close</li>
+    </ul>
+    <button id="help-close">Close</button>
+  </div>
+</div>
 </body>
 </html>

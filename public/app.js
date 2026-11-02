@@ -149,3 +149,16 @@ document.getElementById("form").addEventListener("submit", async (e) => {
 document.getElementById("pause").addEventListener("click", () =>
   fetch("/api/pause", { method: "POST", headers: { "content-type": "application/json" }, body: "{}" }));
 renderChat();
+const helpOverlay = document.getElementById("help-overlay");
+function setHelp(open) {
+  helpOverlay.hidden = !open;
+  if (open) document.getElementById("help-close").focus();
+}
+document.getElementById("help-close").addEventListener("click", () => setHelp(false));
+addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && !helpOverlay.hidden) { setHelp(false); return; }
+  if (/^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(document.activeElement?.tagName) || document.activeElement?.isContentEditable) return;
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  if (e.key === "?") { e.preventDefault(); setHelp(helpOverlay.hidden); }
+  else if (e.key === "p" || e.key === "P" || e.code === "Space") { e.preventDefault(); document.getElementById("pause").click(); }
+});
